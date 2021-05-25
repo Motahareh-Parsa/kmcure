@@ -4,7 +4,7 @@
 #' @param time is the observed time to event variable
 #' @param event is the status variable: 1 for event and 0 for censoring
 #' @param survPreds is the matrix of survival predictor variable(s)
-#' @param curePreds (optional) is the matrix of curing predictor variable(s)
+#' @param curePreds is the (optional) matrix of curing predictor variable(s)
 #' @param multiOptim_maxit is the maximum of allowed multi-optimization. Suggestion: increase this number especially in the case of multiple predictors
 #' @param multiOptim_reltol is the relative tolerance in continuing multi-optimization
 #' @param multiOptim_pStopLL is an extra option for stopping multi-optimization. A proportion (between 0 to 1): 0 disable this stopping rule, 0.1 stop multi-optimization when the difference in latest loglik runs become less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.
@@ -64,15 +64,21 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     Xnames = colnames(survPreds)
     X = as.matrix(survPreds) # to be used with exactly this name
     if(is.null(Xnames)) Xnames = paste0("X", 1:ncol(X))
-    Znames = colnames(curePreds)
-    Z = as.matrix(curePreds) # to be used with exactly this name
-    if(is.null(Znames)) Znames = paste0("Z", 1:ncol(Z))
+    if(!is.null(curePreds)){
+      Znames = colnames(curePreds)
+      Z = as.matrix(curePreds) # to be used with exactly this name
+      if(is.null(Znames)) Znames = paste0("Z", 1:ncol(Z))
+      oneZ = cbind(1,Z) # to be used with exactly this name
+    } else{
+      Znames = ""
+      oneZ = matrix(1, nrow=length(Y)) # to be used with exactly this name
+    }
+
 
 
     ## claculate logY and n
     logY = log(Y) # to be used with exactly this name
     n = length(logY) # to be used with exactly this name
-    oneZ = cbind(1,Z) # to be used with exactly this name
 
     if(!silent) {
       cat("The program run is started at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "Please be patient...\n")
@@ -88,7 +94,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     ### Initial values
 
     ## Initial Values for Logistic model (Uncure Prob.)
-    logit.fit = glm( delta ~ Z , family = binomial(link="logit"), control = list(maxit = 100)) # the number of maxit increased from the default value of 25 to 100 to avoid possible non-convergence warnings
+    logit.fit = glm( delta ~ oneZ - 1 , family = binomial(link="logit"), control = list(maxit = 100)) # the number of maxit increased from the default value of 25 to 100 to avoid possible non-convergence warnings
     b.ini = coef(logit.fit)
 
     ## Initial Values for AFT Model of Uncured Individuals
@@ -307,7 +313,12 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
 
     coef = thetaUpdate # use the latest estimation of theta that is result of the optimization
     coef = as.matrix(coef)
-    rownames(coef) = c( "Gamma(Intercept)", paste("Gamma(",Znames,")",sep=""), paste("Beta(",Xnames,")",sep="") )
+    if(all(Znames=="")){
+      rownames(coef) = c( "Gamma(Intercept)", paste("Beta(",Xnames,")",sep="") )
+    }else{
+      rownames(coef) = c( "Gamma(Intercept)", paste("Gamma(",Znames,")",sep=""), paste("Beta(",Xnames,")",sep="") )
+    }
+
     colnames(coef) = ("Estimate")
     #print(coef)
     rownames(mat_coef) = rownames(coef)

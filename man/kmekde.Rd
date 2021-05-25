@@ -8,7 +8,7 @@ kmekde(
   time,
   event,
   survPreds,
-  curePreds,
+  curePreds = NULL,
   multiOptim_maxit = 1,
   multiOptim_reltol = 0.001,
   multiOptim_pStopLL = 0,
@@ -36,7 +36,7 @@ kmekde(
 
 \item{survPreds}{is the matrix of survival predictor variable(s)}
 
-\item{curePreds}{is the matrix of curing predictor variable(s)}
+\item{curePreds}{is the (optional) matrix of curing predictor variable(s)}
 
 \item{multiOptim_maxit}{is the maximum of allowed multi-optimization. Suggestion: increase this number especially in the case of multiple predictors}
 
