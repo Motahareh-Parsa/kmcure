@@ -18,22 +18,45 @@
 #' @param maxitShoot_beta is the maximum of allowed iterations in the optimization of the beta part in the shooting algorithm
 #' @param reltolShoot_gamma is the relative tolerance in continuing optimization of the gamma part in the shooting algorithm
 #' @param maxitShoot_gamma is the maximum of allowed iterations in the optimization of the gamma part in the shooting algorithm
-#' @param optim_method is the method of optimization: "Nelder-Mead" and "SANN" are supported
-#' @param optim_init is an optional vector of initial values to be used in optimization. It can be used to speed up optimization in Bootstrapping by allowing to use of the estimated coefficients of the model fit to original data as Bootstrap fits initial values.
 #' @param fix_gammacoef is an optional vector of fix gamma coefficients that could be used to estimate beta coefficients based of them. This can be used for conditional optimization.
 #' @param fix_betacoef is an optional vector of fix beta coefficients that could be used to estimate gamma coefficients based of them. This can be used for conditional optimization.
 #' @param bandcoef is an optional coefficient to multiply the optimal kernel smoothing band-width (Please note the loglik values resulted by applying different "bandcoef" are not comparable. So, changing the default value of this option is Not recommended.)
+#' @param try_hessian is a Boolean with default value of FALSE. If this set to TRUE, the Hessian matrix will be evaluated after last optimization by applying a final optimization that also try to estimate the hessian matrix
+#' @param optim_method is the method of optimization: "Nelder-Mead" and "SANN" are supported
+#' @param optim_init is an optional vector of initial values to be used in continuing optimization of previously estimated coefficients by optionally providing them as initial values.
 #'
 #' @return a list of "exitcode" (0: no warning or error, 1: warning, 2 or 3: error), "coef" (estimated coefficients), "AIC", etc. check names(fit) for more information.
 #'
 #' @examples
 #' data(hfp)
 #'
-#' fit = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
-#' multiOptim_maxit = 100, multiOptim_reltol = 0.001)
+#' fit1 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)])
 #'
-#' names(fit)
-#' if(fit$exitcode==0) fit$coef
+#' names(fit1)
+#'
+#' if(fit1$exitcode==0){
+#' print(fit1$loglik)
+#' print(fit1$timeD)
+#' # print(fit1$coef)
+#' }
+#'
+#' fit2 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], shooting=TRUE)
+#' print(fit2$exitcode)
+#' print(fit2$loglik)
+#' print(fit2$timeD)
+#' # print(fit2$coef)
+#'
+#' fit3 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], multiOptim_maxit = 5)
+#' print(fit3$exitcode)
+#' print(fit3$loglik)
+#' print(fit3$timeD)
+#' # print(fit3$coef)
+#'
+#' fit4 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], multiOptim_maxit = 5, optim_init = fit3$coef)
+#' print(fit4$exitcode)
+#' print(fit4$loglik)
+#' print(fit4$timeD)
+#' # print(fit4$coef)
 #'
 #' @import survival stats
 #' @importFrom survival Surv survfit
@@ -47,8 +70,9 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
                    reltolShoot = 1e-8, maxitShoot = 250,
                    reltolShoot_beta = 1e-8, maxitShoot_beta = 500,
                    reltolShoot_gamma = 1e-5, maxitShoot_gamma = 50,
-                   optim_method = "Nelder-Mead", optim_init = NULL,
-                   fix_gammacoef = NULL, fix_betacoef = NULL, bandcoef=1)
+                   fix_gammacoef = NULL, fix_betacoef = NULL,
+                   bandcoef=1, try_hessian=FALSE,
+                   optim_method = "Nelder-Mead", optim_init = NULL)
   {
 
   if(multiOptim_maxit > 1000) multiOptim_maxit = 1000
@@ -80,9 +104,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     logY = log(Y) # to be used with exactly this name
     n = length(logY) # to be used with exactly this name
 
-    if(!silent) {
-      cat("The program run is started at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "Please be patient...\n")
-    }
+    if(!silent) cat("The program run is started at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "Please be patient...\n")
 
     ## calculate cure fraction and censoring percent just to be used in report
     sfit = survival::survfit(survival::Surv(Y, delta)~1)
@@ -117,6 +139,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     ##---------------------- KAPLAN-MEIER --------------------------------------------------------------------------
     s0 = function(eps,delta) # the input delta here is not the delta variable
     {
+      if(length(eps)!=length(delta)) return(NA)
       ss = survival::survfit(survival::Surv(eps,delta)~1)
       ss = summary(ss,times=eps)$surv
       return((ss-ss[n])/(1-ss[n]))
@@ -126,6 +149,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     f0 = function(eps,delta,h) # the input delta here is not the delta variable
     {
       # Other input: n
+      if(length(eps)!=length(delta)) return(NA)
       ss = s0(eps,delta)
       ss1 = c(1,ss[1:n-1])
       a = ss1-ss
@@ -153,28 +177,37 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     {
       # Other inputs: logY , delta , X , oneZ
 
-      h = as.numeric(h)[1] # h is a value
+      tryCatch({
 
-      bvec = as.matrix(theta[1:length(b.ini)])
+        h = as.numeric(h)[1] # h is a value
 
-      betavec = as.matrix(theta[(length(b.ini)+1):(length(b.ini)+length(beta.ini))])
+        bvec = as.matrix(theta[1:length(b.ini)])
 
-      eps = as.numeric(logY - as.matrix(X)%*%betavec)
+        betavec = as.matrix(theta[(length(b.ini)+1):(length(b.ini)+length(beta.ini))])
 
-      De = delta[order(eps)]
+        eps = as.numeric(logY - as.matrix(X)%*%betavec)
 
-      Ze = oneZ[order(eps),]
+        De = delta[order(eps)]
 
-      Ze_b = as.numeric(as.matrix(Ze)%*%bvec)
+        Ze = oneZ[order(eps),]
 
-      eps = sort(eps) # needs to be sorted
-      ##--------------------------------------------------------------------------------------------------------------------------
-      px = exp(Ze_b)/( 1 + exp(Ze_b))
-      ##---------------------------------------------------------------------------------------------------------------------------
+        Ze_b = as.numeric(as.matrix(Ze)%*%bvec)
 
-      part1 = log(px*f0(eps,De,h))
-      part2 = log(1-px+px*s0(eps,De))
-      return(-sum(De*fixInf(part1) + (1-De)*fixInf(part2)))
+        eps = sort(eps) # needs to be sorted
+        ##--------------------------------------------------------------------------------------------------------------------------
+        px = exp(Ze_b)/( 1 + exp(Ze_b))
+        ##---------------------------------------------------------------------------------------------------------------------------
+
+        part1 = log(px*f0(eps,De,h))
+        part2 = log(1-px+px*s0(eps,De))
+        return(-sum(De*fixInf(part1) + (1-De)*fixInf(part2)))
+
+      }, warning = function(cond) {
+        return(NA)
+      }, error = function(cond) {
+        return(NA)
+      }
+      ) # end tryCatch
     }
 
     #---------------------------------------------------------------------------------------------------------------------------
@@ -278,35 +311,61 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     ##### End shooting
 
     vecLL = -1*loglik(thetaUpdate)
-    if(!silent) {
-      cat("Optimization # 1 is completed. The optim log-likelihood is", vecLL[1], "\n")
-    }
+    if(!silent) cat("Optimization # 1 is completed. The optim log-likelihood is", vecLL[1], "\n")
     vecAIC = -2*vecLL+2*length(thetaUpdate)
     mat_coef = matrix(thetaUpdate, nrow=length(theta), ncol = 1)
 
     ### Start applying further optimization if multiOptim_maxit > 1
     if(multiOptim_maxit >= 2){
       for(k in 2:round(multiOptim_maxit)){
+        tryCatch({
+          theta = thetaUpdate
+          theta.optim = optim(par=theta, fn=loglik, hessian = FALSE, control = list(reltol=reltolOptim, maxit = maxitOptim), method = optim_method)
+          thetaUpdate = theta.optim$par
+          mat_coef = cbind(mat_coef, thetaUpdate)
+          LL = theta.optim$value
+          vecLL = c(vecLL,-LL)
+          if(!silent) cat("Optimization #", length(vecLL) ,"is completed. The optim log-likelihood is", vecLL[length(vecLL)], "\n")
+          AIC = 2*LL+2*length(thetaUpdate)
+          vecAIC = c(vecAIC, AIC)
+          LL_exitCondition = FALSE
+          if( abs(vecLL[length(vecLL)-1]-vecLL[length(vecLL)]) <= abs(vecLL[2]-vecLL[1]) * multiOptim_pStopLL ) LL_exitCondition = TRUE
+          reltolcondition = all(abs((thetaUpdate-theta)) < (multiOptim_reltol * (abs(theta) + multiOptim_reltol)))
+          if(reltolcondition | LL_exitCondition) (break)
+        }, warning = function(cond) {
+          if(!silent) cat("Skip optimization #", k, " duo to ocurance of a warning.\n")
+        }, error = function(cond) {
+          if(!silent) cat("Skip optimization #", k, " duo to ocurance of an error.\n")
+        }
+        ) # end tryCatch
+      } # end for loop of k
+    } # end if of multiOptim_maxit
+
+    ### End applying further optimization if multiOptim_maxit > 1
+
+    ### start calculation hessian if try_hessian is TRUE
+    estHessian = NA
+    if(try_hessian){
+      if(!silent) cat("Optimization #", length(vecLL)+1 ,"is started that try to find an estimate for the Hessian matrix.\n")
+      tryCatch({
         theta = thetaUpdate
-        theta.optim = optim(par=theta, fn=loglik, hessian = FALSE, control = list(reltol=reltolOptim, maxit = maxitOptim), method = optim_method)
+        theta.optim = optim(par=theta, fn=loglik, hessian = TRUE, control = list(reltol=reltolOptim, maxit = maxitOptim), method = optim_method)
         thetaUpdate = theta.optim$par
         mat_coef = cbind(mat_coef, thetaUpdate)
         LL = theta.optim$value
         vecLL = c(vecLL,-LL)
-        if(!silent) {
-          cat("Optimization #", k ,"is completed. The optim log-likelihood is", vecLL[k], "\n")
-        }
         AIC = 2*LL+2*length(thetaUpdate)
         vecAIC = c(vecAIC, AIC)
-        LL_exitCondition = FALSE
-        if( abs(vecLL[k-1]-vecLL[k]) <= abs(vecLL[2]-vecLL[1]) * multiOptim_pStopLL ) LL_exitCondition = TRUE
-        reltolcondition = all(abs((thetaUpdate-theta)) < (multiOptim_reltol * (abs(theta) + multiOptim_reltol)))
-        if(reltolcondition | LL_exitCondition) (break)
+        estHessian = theta.optim$hessian
+        if(!silent) cat("Optimization #", length(vecLL) ,"and claculating the Hessian matrix is completed. The optim log-likelihood is", vecLL[length(vecLL)], "\n")
+      }, warning = function(condHessian) {
+        if(!silent) cat("As expected, a warning is occurred in trying to find the Hessian matrix!\n")
+      }, error = function(condHessian) {
+        if(!silent) cat("As expected, an error is occurred in trying to find the Hessian matrix!\n")
       }
-    }
-
-
-    ### End applying further optimization if multiOptim_maxit > 1
+      ) # end tryCatch
+    } # end if condition on try_hessian
+    ### end calculation of hessian if try_hessian is TRUE
 
     timeE = Sys.time() # end recording time
     timeD = difftime(timeE, timeS, units = "mins")
@@ -322,20 +381,26 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     colnames(coef) = ("Estimate")
     #print(coef)
     rownames(mat_coef) = rownames(coef)
-    if(!silent) {
-      cat("The program run is successfully finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
-    }
-    return( list(exitcode = 0, coef=coef, method = methodName, timeD=timeD, AIC=vecAIC[length(vecAIC)], loglik=vecLL[length(vecLL)], pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC))
+    if(!silent) cat("The program run is successfully finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
+    return( list(exitcode = 0, coef=coef, method = methodName, timeD=timeD, AIC=vecAIC[length(vecAIC)], loglik=vecLL[length(vecLL)], pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian))
   }, warning = function(w) {
-    if(!silent) message("A warning in the KMEKDE fitting is occured!")
-    return( list(exitcode = 1, coef=coef, method = methodName, timeD=timeD, AIC=vecAIC[length(vecAIC)], loglik=vecLL[length(vecLL)], pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC))
+    if(!silent){
+      message("A warning in the KMEKDE fitting is occured!")
+      message(w)
+    }
+    return( list(exitcode = 1, coef=coef, method = methodName, timeD=timeD, AIC=vecAIC[length(vecAIC)], loglik=vecLL[length(vecLL)], pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian))
   }, error = function(e) {
-    if(!silent) message("An error in the KMEKDE fitting is occured!")
-    return(list(exitcode = 2, coef=NA, method = methodName, timeD = NA, AIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL))
+    if(!silent){
+      message("An error in the KMEKDE fitting is occured!")
+      message(e)
+    }
+    return(list(exitcode = 2, coef=NA, method = methodName, timeD = NA, AIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA))
   }, finally = {
     if(all(typeof(coef)!="closure")) if(any(is.na(coef))){
-      if(!silent) message("NA coefficients in the KMEKDE fitting is occured!")
-      return(list(exitcode = 3, coef=NA, method = methodName, timeD = NA, AIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL))
+      if(!silent) {
+        message("NA coefficients in the KMEKDE fitting is occured!")
+      }
+      return(list(exitcode = 3, coef=NA, method = methodName, timeD = NA, AIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA))
     }
   }
   ) # end tryCatch

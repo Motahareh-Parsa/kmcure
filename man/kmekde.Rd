@@ -22,11 +22,12 @@ kmekde(
   maxitShoot_beta = 500,
   reltolShoot_gamma = 1e-05,
   maxitShoot_gamma = 50,
-  optim_method = "Nelder-Mead",
-  optim_init = NULL,
   fix_gammacoef = NULL,
   fix_betacoef = NULL,
-  bandcoef = 1
+  bandcoef = 1,
+  try_hessian = FALSE,
+  optim_method = "Nelder-Mead",
+  optim_init = NULL
 )
 }
 \arguments{
@@ -64,15 +65,17 @@ kmekde(
 
 \item{maxitShoot_gamma}{is the maximum of allowed iterations in the optimization of the gamma part in the shooting algorithm}
 
-\item{optim_method}{is the method of optimization: "Nelder-Mead" and "SANN" are supported}
-
-\item{optim_init}{is an optional vector of initial values to be used in optimization. It can be used to speed up optimization in Bootstrapping by allowing to use of the estimated coefficients of the model fit to original data as Bootstrap fits initial values.}
-
 \item{fix_gammacoef}{is an optional vector of fix gamma coefficients that could be used to estimate beta coefficients based of them. This can be used for conditional optimization.}
 
 \item{fix_betacoef}{is an optional vector of fix beta coefficients that could be used to estimate gamma coefficients based of them. This can be used for conditional optimization.}
 
 \item{bandcoef}{is an optional coefficient to multiply the optimal kernel smoothing band-width (Please note the loglik values resulted by applying different "bandcoef" are not comparable. So, changing the default value of this option is Not recommended.)}
+
+\item{try_hessian}{is a Boolean with default value of FALSE. If this set to TRUE, the Hessian matrix will be evaluated after last optimization by applying a final optimization that also try to estimate the hessian matrix}
+
+\item{optim_method}{is the method of optimization: "Nelder-Mead" and "SANN" are supported}
+
+\item{optim_init}{is an optional vector of initial values to be used in continuing optimization of previously estimated coefficients by optionally providing them as initial values.}
 }
 \value{
 a list of "exitcode" (0: no warning or error, 1: warning, 2 or 3: error), "coef" (estimated coefficients), "AIC", etc. check names(fit) for more information.
@@ -83,10 +86,32 @@ Fits Accelerated Failure Time (AFT) Semiparametric Mixture Cure Models using Kap
 \examples{
 data(hfp)
 
-fit = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
-multiOptim_maxit = 100, multiOptim_reltol = 0.001)
+fit1 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)])
 
-names(fit)
-if(fit$exitcode==0) fit$coef
+names(fit1)
+
+if(fit1$exitcode==0){
+print(fit1$loglik)
+print(fit1$timeD)
+# print(fit1$coef)
+}
+
+fit2 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], shooting=TRUE)
+print(fit2$exitcode)
+print(fit2$loglik)
+print(fit2$timeD)
+# print(fit2$coef)
+
+fit3 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], multiOptim_maxit = 5)
+print(fit3$exitcode)
+print(fit3$loglik)
+print(fit3$timeD)
+# print(fit3$coef)
+
+fit4 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], multiOptim_maxit = 5, optim_init = fit3$coef)
+print(fit4$exitcode)
+print(fit4$loglik)
+print(fit4$timeD)
+# print(fit4$coef)
 
 }
