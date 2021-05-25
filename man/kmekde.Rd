@@ -11,7 +11,8 @@ kmekde(
   curePreds = NULL,
   multiOptim_maxit = 1,
   multiOptim_reltol = 0.001,
-  multiOptim_pStopLL = 0,
+  multiOptim_stopTime = NULL,
+  multiOptim_stopLLp = 0,
   reltolOptim = 1e-08,
   maxitOptim = 500,
   silent = FALSE,
@@ -43,7 +44,9 @@ kmekde(
 
 \item{multiOptim_reltol}{is the relative tolerance in continuing multi-optimization}
 
-\item{multiOptim_pStopLL}{is an extra option for stopping multi-optimization. A proportion (between 0 to 1): 0 disable this stopping rule, 0.1 stop multi-optimization when the difference in latest loglik runs become less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.}
+\item{multiOptim_stopTime}{is an optional time limit to stop multi-optimization based on calculation time per minutes}
+
+\item{multiOptim_stopLLp}{is an extra option for stopping multi-optimization based on the proportion of log-likelihood successive changes in multi-optimization. It is a value between 0 to 1 where for example, 0 disable this stopping rule, and 0.1 stop multi-optimization when the difference in the latest loglik runs becomes less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.}
 
 \item{reltolOptim}{is the relative tolerance in continuing of each optimization run}
 
@@ -113,5 +116,11 @@ print(fit4$exitcode)
 print(fit4$loglik)
 print(fit4$timeD)
 # print(fit4$coef)
+
+fit5 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], multiOptim_maxit = 500, multiOptim_reltol = 0.0001, optim_init = fit4$coef, multiOptim_stopTime = 5)
+print(fit5$exitcode)
+print(fit5$loglik)
+print(fit5$timeD)
+# print(fit5$coef)
 
 }

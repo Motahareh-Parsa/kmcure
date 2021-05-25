@@ -1,13 +1,15 @@
 #' Fits AFT Semiparametric Mixture Cure Models using novel KME-KDE method
 #'
 #' Fits Accelerated Failure Time (AFT) Semiparametric Mixture Cure Models using Kaplan-Meier Estimation and Kernel Density Estimation (KME-KDE).
+#'
 #' @param time is the observed time to event variable
 #' @param event is the status variable: 1 for event and 0 for censoring
 #' @param survPreds is the matrix of survival predictor variable(s)
 #' @param curePreds is the (optional) matrix of curing predictor variable(s)
 #' @param multiOptim_maxit is the maximum of allowed multi-optimization. Suggestion: increase this number especially in the case of multiple predictors
 #' @param multiOptim_reltol is the relative tolerance in continuing multi-optimization
-#' @param multiOptim_pStopLL is an extra option for stopping multi-optimization. A proportion (between 0 to 1): 0 disable this stopping rule, 0.1 stop multi-optimization when the difference in latest loglik runs become less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.
+#' @param multiOptim_stopTime is an optional time limit to stop multi-optimization based on calculation time per minutes
+#' @param multiOptim_stopLLp is an extra option for stopping multi-optimization based on the proportion of log-likelihood successive changes in multi-optimization. It is a value between 0 to 1 where for example, 0 disable this stopping rule, and 0.1 stop multi-optimization when the difference in the latest loglik runs becomes less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.
 #' @param reltolOptim is the relative tolerance in continuing of each optimization run
 #' @param maxitOptim is the maximum of allowed iterations in each optimization run
 #' @param silent a Boolean value which if set to TRUE it prevent from showing output messages
@@ -58,13 +60,19 @@
 #' print(fit4$timeD)
 #' # print(fit4$coef)
 #'
+#' fit5 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], multiOptim_maxit = 500, multiOptim_reltol = 0.0001, optim_init = fit4$coef, multiOptim_stopTime = 5)
+#' print(fit5$exitcode)
+#' print(fit5$loglik)
+#' print(fit5$timeD)
+#' # print(fit5$coef)
+#'
 #' @import survival stats
 #' @importFrom survival Surv survfit
 #' @importFrom stats binomial dnorm glm lm optim var
 #' @export
 kmekde <- function(time, event, survPreds, curePreds=NULL,
-                   multiOptim_maxit = 1, multiOptim_reltol = 0.001, # suggestion: increase the multiOptim_maxit number especially in the case of multiple predictors
-                   multiOptim_pStopLL = 0, # an extra option for stopping of multi-optimization. A proportion (between 0 to 1): 0 disable this stopping rule, 0.1 stop multi-optimization when difference in latest loglik runs become less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.
+                   multiOptim_maxit = 1, multiOptim_reltol = 0.001,
+                   multiOptim_stopTime = NULL, multiOptim_stopLLp = 0,
                    reltolOptim = 1e-8, maxitOptim = 500,
                    silent = FALSE, shooting = FALSE,
                    reltolShoot = 1e-8, maxitShoot = 250,
@@ -76,8 +84,8 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
   {
 
   if(multiOptim_maxit > 1000) multiOptim_maxit = 1000
-  if(multiOptim_pStopLL < 0) multiOptim_pStopLL = 0
-  if(multiOptim_pStopLL > 1) multiOptim_pStopLL = 1
+  if(multiOptim_stopLLp < 0) multiOptim_stopLLp = 0
+  if(multiOptim_stopLLp > 1) multiOptim_stopLLp = 1
 
   methodName = "KMEKDE"
 
@@ -319,6 +327,11 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     if(multiOptim_maxit >= 2){
       for(k in 2:round(multiOptim_maxit)){
         tryCatch({
+          if(!is.null(multiOptim_stopTime)){
+            timeE = Sys.time()
+            timeD = difftime(timeE, timeS, units = "mins")
+            if (timeD > multiOptim_stopTime) (break)
+          }
           theta = thetaUpdate
           theta.optim = optim(par=theta, fn=loglik, hessian = FALSE, control = list(reltol=reltolOptim, maxit = maxitOptim), method = optim_method)
           thetaUpdate = theta.optim$par
@@ -329,7 +342,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
           AIC = 2*LL+2*length(thetaUpdate)
           vecAIC = c(vecAIC, AIC)
           LL_exitCondition = FALSE
-          if( abs(vecLL[length(vecLL)-1]-vecLL[length(vecLL)]) <= abs(vecLL[2]-vecLL[1]) * multiOptim_pStopLL ) LL_exitCondition = TRUE
+          if( abs(vecLL[length(vecLL)-1]-vecLL[length(vecLL)]) <= abs(vecLL[2]-vecLL[1]) * multiOptim_stopLLp ) LL_exitCondition = TRUE
           reltolcondition = all(abs((thetaUpdate-theta)) < (multiOptim_reltol * (abs(theta) + multiOptim_reltol)))
           if(reltolcondition | LL_exitCondition) (break)
         }, warning = function(cond) {
