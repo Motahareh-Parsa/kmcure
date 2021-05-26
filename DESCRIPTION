@@ -1,16 +1,12 @@
 Package: kmcure
 Title: Fits AFT Semiparametric Mixture Cure Models using novel KME-KDE method
-Version: 0.0.0.9000
-Authors@R: 
-    person(given = "Motahareh",
-           family = "Parsa",
-           role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+Version: 0.0.0.9001
+Author: Motahareh Parsa, Seyed Mahmood Taghavi-Shahri, Ingrid Van Keilegom
+Maintainer: Motahareh Parsa <motahareh.parsa@kuleuven.be>
 Description: Fits Accelerated Failure Time (AFT) Semiparametric Mixture Cure Models using Kaplan-Meier Estimation and Kernel Density Estimation (KME-KDE).
 License: GPL (>= 3)
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: stats, survival
