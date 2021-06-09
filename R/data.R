@@ -16,7 +16,7 @@
 #'   \item{BP}{Blood Pressure (BP) status}
 #'   \item{Anaemia}{Anaemia status}
 #'   \item{Age}{Age by years}
-#'   \item{Ejection.Fraction}{Ejection Fraction (EF)}
+#'   \item{EF}{Ejection Fraction (EF)}
 #'   \item{Sodium}{Sodium levels}
 #'   \item{Creatinine}{Creatinine}
 #'   \item{Pletelets}{Pletelets}

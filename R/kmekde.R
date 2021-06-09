@@ -1,6 +1,6 @@
-#' Fits AFT Semiparametric Mixture Cure Models using novel KME-KDE method
+#' Fits AFT Semiparametric Mixture Cure Model using the KME-KDE method
 #'
-#' Fits Accelerated Failure Time (AFT) Semiparametric Mixture Cure Models using Kaplan-Meier Estimation and Kernel Density Estimation (KME-KDE).
+#' Fits AFT (Accelerated Failure Time) Semiparametric Mixture Cure Model using the KME-KDE (Kaplan-Meier Estimation and Kernel Density Estimator) method.
 #'
 #' @param time is the observed time to event variable
 #' @param event is the status variable: 1 for event and 0 for censoring
@@ -42,28 +42,32 @@
 #' # print(fit1$coef)
 #' }
 #'
-#' fit2 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], shooting=TRUE)
+#' fit2 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
+#'                shooting=TRUE)
 #' print(fit2$exitcode)
 #' print(fit2$loglik)
 #' print(fit2$timeD)
 #' # print(fit2$coef)
 #'
-#' fit3 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], multiOptim_maxit = 5)
+#' fit3 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
+#'                multiOptim_maxit = 5)
 #' print(fit3$exitcode)
 #' print(fit3$loglik)
 #' print(fit3$timeD)
 #' # print(fit3$coef)
 #'
-#' fit4 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], multiOptim_maxit = 5, optim_init = fit3$coef)
+#' fit4 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
+#'                multiOptim_maxit = 5, optim_init = fit3$coef)
 #' print(fit4$exitcode)
 #' print(fit4$loglik)
 #' print(fit4$timeD)
 #' # print(fit4$coef)
 #'
-#' fit5 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)], multiOptim_maxit = 500, multiOptim_reltol = 0.0001, optim_init = fit4$coef, multiOptim_stopTime = 5)
-#' print(fit5$exitcode)
-#' print(fit5$loglik)
-#' print(fit5$timeD)
+#' # fit5 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
+#' #                multiOptim_maxit = 500, multiOptim_stopTime = 10) # limit run to 10 minutes
+#' # print(fit5$exitcode)
+#' # print(fit5$loglik)
+#' # print(fit5$timeD)
 #' # print(fit5$coef)
 #'
 #' @import survival stats
