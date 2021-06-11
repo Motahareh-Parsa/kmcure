@@ -6,8 +6,8 @@
 #' @param event is the status variable: 1 for event and 0 for censoring
 #' @param survPreds is the matrix of survival predictor variable(s)
 #' @param curePreds is the (optional) matrix of curing predictor variable(s)
-#' @param multiOptim_maxit is the maximum of allowed multi-optimization. Suggestion: increase this number especially in the case of multiple predictors
-#' @param multiOptim_reltol is the relative tolerance in continuing multi-optimization
+#' @param multiOptim_maxit is the maximum of allowed multi-optimization. The program does multi-optimization if the convergence of "optim" does not meet.
+#' @param multiOptim_reltol is the relative tolerance in continuing multi-optimization procedure
 #' @param multiOptim_stopTime is an optional time limit to stop multi-optimization based on calculation time per minutes
 #' @param multiOptim_stopLLp is an extra option for stopping multi-optimization based on the proportion of log-likelihood successive changes in multi-optimization. It is a value between 0 to 1 where for example, 0 disable this stopping rule, and 0.1 stop multi-optimization when the difference in the latest loglik runs becomes less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.
 #' @param reltolOptim is the relative tolerance in continuing of each optimization
@@ -338,6 +338,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
 
     ### Start applying further optimization if multiOptim_maxit > 1
     if(multiOptim_maxit >= 2){
+      if(vecconv[length(vecconv )]!=0){ # do only if the previous optimization was not converged
       for(k in 2:round(multiOptim_maxit)){
         tryCatch({
           if(!is.null(multiOptim_stopTime)){
@@ -371,6 +372,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
         }
         ) # end tryCatch
       } # end for loop of k
+    } # end if of vecconv
     } # end if of multiOptim_maxit
 
     ### End applying further optimization if multiOptim_maxit > 1

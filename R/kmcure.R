@@ -2,8 +2,8 @@
 #'
 #' @param formula is the formula of survival sub-model which define time and event variables using Surv function on the left of a tilde symbol and it define list of survival predictors on the right of the tilde symbol.
 #' @param cureform is the formula of cure sub-model which define predictors of cure sub-model on the right of a tilde symbol, if omitted program use just an intercept in the cure sub-model
-#' @param multiOptim_maxit is the maximum of allowed multi-optimization.
-#' @param multiOptim_reltol is the relative tolerance in continuing multi-optimization
+#' @param multiOptim_maxit is the maximum of allowed multi-optimization. The program does multi-optimization if the convergence of "optim" does not meet.
+#' @param multiOptim_reltol is the relative tolerance in continuing multi-optimization procedure
 #' @param reltolOptim is the relative tolerance in continuing of each optimization
 #' @param maxitOptim is the maximum of allowed iterations in each optimization
 #' @param silent a Boolean value which if set to TRUE it prevent from showing output messages
