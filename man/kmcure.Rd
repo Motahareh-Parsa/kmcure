@@ -2,7 +2,7 @@
 % Please edit documentation in R/kmcure.R
 \name{kmcure}
 \alias{kmcure}
-\title{Title}
+\title{Fits AFT Semiparametric Mixture Cure Model using the KME-KDE method}
 \usage{
 kmcure(
   formula,
@@ -10,8 +10,8 @@ kmcure(
   data,
   multiOptim_maxit = 100,
   multiOptim_reltol = 0.001,
-  reltolOptim = 1e-08,
-  maxitOptim = 500,
+  optim_reltol = 1e-08,
+  optim_maxit = 500,
   silent = FALSE
 )
 }
@@ -22,13 +22,13 @@ kmcure(
 
 \item{data}{is the input data frame which its columns' names can be called in the formula and the cureform}
 
-\item{multiOptim_maxit}{is the maximum of allowed multi-optimization. The program does multi-optimization if the convergence of "optim" does not meet.}
+\item{multiOptim_maxit}{is the maximum of allowed multiple optimization. If the convergence of "optim" does not meet, the program does multiple optimization.}
 
-\item{multiOptim_reltol}{is the relative tolerance in continuing multi-optimization procedure}
+\item{multiOptim_reltol}{is the relative tolerance in continuing multiple optimization procedure}
 
-\item{reltolOptim}{is the relative tolerance in continuing of each optimization}
+\item{optim_reltol}{is the relative tolerance in continuing of each optimization}
 
-\item{maxitOptim}{is the maximum of allowed iterations in each optimization}
+\item{optim_maxit}{is the maximum of allowed iterations in each optimization}
 
 \item{silent}{a Boolean value which if set to TRUE it prevent from showing output messages}
 }
@@ -36,7 +36,7 @@ kmcure(
 is a kmcure object
 }
 \description{
-Title
+Fits AFT (Accelerated Failure Time) Semiparametric Mixture Cure Model using the KME-KDE (Kaplan-Meier Estimation and Kernel Density Estimator) method.
 }
 \examples{
 data(hfp)
@@ -45,5 +45,5 @@ Gender+Smoking+Diabetes+BP+Anaemia+Age+EF+Sodium+Creatinine+Pletelets+CPK,
 cureform = ~Gender+Smoking+Diabetes+BP+Anaemia+Age+EF+Sodium+Creatinine+Pletelets+CPK,
 data = hfp)
 names(fit)
-View(fit$mat_coef[,c(1,5,10,56,57)])
+View(fit$mat_coef[, c(1, ncol(fit$mat_coef) )])
 }

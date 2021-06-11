@@ -1,13 +1,13 @@
-#' Fits AFT Semiparametric Mixture Cure Model using the KME-KDE method
+#' The "kmcure" function call this function that accept matrix inputs to fits AFT Semiparametric Mixture Cure Model using the KME-KDE method
 #'
-#' Fits AFT (Accelerated Failure Time) Semiparametric Mixture Cure Model using the KME-KDE (Kaplan-Meier Estimation and Kernel Density Estimator) method.
+#' Fits AFT (Accelerated Failure Time) Semiparametric Mixture Cure Model using the KME-KDE (Kaplan-Meier Estimation and Kernel Density Estimator) method where inputs data be provided as matrices.
 #'
 #' @param time is the observed time to event variable
 #' @param event is the status variable: 1 for event and 0 for censoring
 #' @param survPreds is the matrix of survival predictor variable(s)
 #' @param curePreds is the (optional) matrix of curing predictor variable(s)
-#' @param multiOptim_maxit is the maximum of allowed multi-optimization. The program does multi-optimization if the convergence of "optim" does not meet.
-#' @param multiOptim_reltol is the relative tolerance in continuing multi-optimization procedure
+#' @param multiOptim_maxit is the maximum of allowed multiple optimization. If the convergence of "optim" does not meet, the program does multiple optimization.
+#' @param multiOptim_reltol is the relative tolerance in continuing multiple optimization procedure
 #' @param multiOptim_stopTime is an optional time limit to stop multi-optimization based on calculation time per minutes
 #' @param multiOptim_stopLLp is an extra option for stopping multi-optimization based on the proportion of log-likelihood successive changes in multi-optimization. It is a value between 0 to 1 where for example, 0 disable this stopping rule, and 0.1 stop multi-optimization when the difference in the latest loglik runs becomes less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.
 #' @param optim_reltol is the relative tolerance in continuing of each optimization

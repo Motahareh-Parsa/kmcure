@@ -2,7 +2,7 @@
 % Please edit documentation in R/kmekde.R
 \name{kmekde}
 \alias{kmekde}
-\title{Fits AFT Semiparametric Mixture Cure Model using the KME-KDE method}
+\title{The "kmcure" function call this function that accept matrix inputs to fits AFT Semiparametric Mixture Cure Model using the KME-KDE method}
 \usage{
 kmekde(
   time,
@@ -13,16 +13,16 @@ kmekde(
   multiOptim_reltol = 0.001,
   multiOptim_stopTime = NULL,
   multiOptim_stopLLp = 0,
-  reltolOptim = 1e-08,
-  maxitOptim = 500,
+  optim_reltol = 1e-08,
+  optim_maxit = 500,
   silent = FALSE,
-  shooting = FALSE,
-  reltolShoot = 1e-08,
-  maxitShoot = 250,
-  reltolShoot_beta = 1e-08,
-  maxitShoot_beta = 500,
-  reltolShoot_gamma = 1e-05,
-  maxitShoot_gamma = 50,
+  conditional = FALSE,
+  cond_reltol = 1e-08,
+  cond_maxit = 250,
+  cond_reltol_beta = 1e-08,
+  cond_maxit_beta = 500,
+  cond_reltol_gamma = 1e-05,
+  cond_maxit_gamma = 50,
   fix_gammacoef = NULL,
   fix_betacoef = NULL,
   bandcoef = 1,
@@ -40,33 +40,33 @@ kmekde(
 
 \item{curePreds}{is the (optional) matrix of curing predictor variable(s)}
 
-\item{multiOptim_maxit}{is the maximum of allowed multi-optimization. The program does multi-optimization if the convergence of "optim" does not meet.}
+\item{multiOptim_maxit}{is the maximum of allowed multiple optimization. If the convergence of "optim" does not meet, the program does multiple optimization.}
 
-\item{multiOptim_reltol}{is the relative tolerance in continuing multi-optimization procedure}
+\item{multiOptim_reltol}{is the relative tolerance in continuing multiple optimization procedure}
 
 \item{multiOptim_stopTime}{is an optional time limit to stop multi-optimization based on calculation time per minutes}
 
 \item{multiOptim_stopLLp}{is an extra option for stopping multi-optimization based on the proportion of log-likelihood successive changes in multi-optimization. It is a value between 0 to 1 where for example, 0 disable this stopping rule, and 0.1 stop multi-optimization when the difference in the latest loglik runs becomes less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.}
 
-\item{reltolOptim}{is the relative tolerance in continuing of each optimization}
+\item{optim_reltol}{is the relative tolerance in continuing of each optimization}
 
-\item{maxitOptim}{is the maximum of allowed iterations in each optimization}
+\item{optim_maxit}{is the maximum of allowed iterations in each optimization}
 
 \item{silent}{a Boolean value which if set to TRUE it prevent from showing output messages}
 
-\item{shooting}{a Boolean value which if it is set to TRUE it uses a shooting method (coordinate descent) instead of the usual gradient descent algorithm to find the optimum of Gamma and Beta coefficients conditionally on the estimate of the other one.}
+\item{conditional}{a Boolean value which, if set to TRUE it uses a conditional procedure to iterative estimate parameters of survival and cure sub-models conditional on the last estimation of the other part}
 
-\item{reltolShoot}{is the relative tolerance in continuing the shooting algorithm optimization}
+\item{cond_reltol}{is the relative tolerance in continuing the conditional algorithm optimization}
 
-\item{maxitShoot}{is the maximum of allowed iterations in the shooting algorithm optimization}
+\item{cond_maxit}{is the maximum of allowed iterations in the conditional algorithm optimization}
 
-\item{reltolShoot_beta}{is the relative tolerance in continuing optimization of the beta part in the shooting algorithm}
+\item{cond_reltol_beta}{is the relative tolerance in continuing optimization of the beta part in the conditional algorithm}
 
-\item{maxitShoot_beta}{is the maximum of allowed iterations in the optimization of the beta part in the shooting algorithm}
+\item{cond_maxit_beta}{is the maximum of allowed iterations in the optimization of the beta part in the conditional algorithm}
 
-\item{reltolShoot_gamma}{is the relative tolerance in continuing optimization of the gamma part in the shooting algorithm}
+\item{cond_reltol_gamma}{is the relative tolerance in continuing optimization of the gamma part in the conditional algorithm}
 
-\item{maxitShoot_gamma}{is the maximum of allowed iterations in the optimization of the gamma part in the shooting algorithm}
+\item{cond_maxit_gamma}{is the maximum of allowed iterations in the optimization of the gamma part in the conditional algorithm}
 
 \item{fix_gammacoef}{is an optional vector of fix gamma coefficients that could be used to estimate beta coefficients based of them. This can be used for conditional optimization.}
 
@@ -84,7 +84,7 @@ kmekde(
 a list of "exitcode" (0: no warning or error, 1: warning, 2 or 3: error), "coef" (estimated coefficients), "AIC", etc. check names(fit) for more information.
 }
 \description{
-Fits AFT (Accelerated Failure Time) Semiparametric Mixture Cure Model using the KME-KDE (Kaplan-Meier Estimation and Kernel Density Estimator) method.
+Fits AFT (Accelerated Failure Time) Semiparametric Mixture Cure Model using the KME-KDE (Kaplan-Meier Estimation and Kernel Density Estimator) method where inputs data be provided as matrices.
 }
 \examples{
 data(hfp)
@@ -100,7 +100,7 @@ print(fit1$timeD)
 }
 
 fit2 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
-               shooting=TRUE)
+               conditional=TRUE)
 print(fit2$exitcode)
 print(fit2$loglik)
 print(fit2$timeD)
