@@ -22,9 +22,9 @@ kmcure(
 
 \item{data}{is the input data frame which its columns' names can be called in the formula and the cureform}
 
-\item{multiOptim_maxit}{is the maximum of allowed multi-optimization.}
+\item{multiOptim_maxit}{is the maximum of allowed multi-optimization. The program does multi-optimization if the convergence of "optim" does not meet.}
 
-\item{multiOptim_reltol}{is the relative tolerance in continuing multi-optimization}
+\item{multiOptim_reltol}{is the relative tolerance in continuing multi-optimization procedure}
 
 \item{reltolOptim}{is the relative tolerance in continuing of each optimization}
 
@@ -40,9 +40,10 @@ Title
 }
 \examples{
 data(hfp)
-#fit = kmcure(formula = Surv(Time, Status) ~ TRT,cureform = ~TRT,data = bmt)
 fit = kmcure(formula = Surv(TIME, Event) ~
 Gender+Smoking+Diabetes+BP+Anaemia+Age+EF+Sodium+Creatinine+Pletelets+CPK,
 cureform = ~Gender+Smoking+Diabetes+BP+Anaemia+Age+EF+Sodium+Creatinine+Pletelets+CPK,
-data = bmt)
+data = hfp)
+names(fit)
+View(fit$mat_coef[,c(1,5,10,56,57)])
 }

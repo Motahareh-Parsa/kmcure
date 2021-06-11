@@ -40,9 +40,9 @@ kmekde(
 
 \item{curePreds}{is the (optional) matrix of curing predictor variable(s)}
 
-\item{multiOptim_maxit}{is the maximum of allowed multi-optimization. Suggestion: increase this number especially in the case of multiple predictors}
+\item{multiOptim_maxit}{is the maximum of allowed multi-optimization. The program does multi-optimization if the convergence of "optim" does not meet.}
 
-\item{multiOptim_reltol}{is the relative tolerance in continuing multi-optimization}
+\item{multiOptim_reltol}{is the relative tolerance in continuing multi-optimization procedure}
 
 \item{multiOptim_stopTime}{is an optional time limit to stop multi-optimization based on calculation time per minutes}
 

@@ -4,8 +4,8 @@
 #' @param cureform is the formula of cure sub-model which define predictors of cure sub-model on the right of a tilde symbol, if omitted program use just an intercept in the cure sub-model
 #' @param multiOptim_maxit is the maximum of allowed multi-optimization. The program does multi-optimization if the convergence of "optim" does not meet.
 #' @param multiOptim_reltol is the relative tolerance in continuing multi-optimization procedure
-#' @param reltolOptim is the relative tolerance in continuing of each optimization
-#' @param maxitOptim is the maximum of allowed iterations in each optimization
+#' @param optim_reltol is the relative tolerance in continuing of each optimization
+#' @param optim_maxit is the maximum of allowed iterations in each optimization
 #' @param silent a Boolean value which if set to TRUE it prevent from showing output messages
 #' @param data is the input data frame which its columns' names can be called in the formula and the cureform
 #'
@@ -18,11 +18,11 @@
 #' cureform = ~Gender+Smoking+Diabetes+BP+Anaemia+Age+EF+Sodium+Creatinine+Pletelets+CPK,
 #' data = hfp)
 #' names(fit)
-#' View(fit$mat_coef[,c(1,5,10,56,57)])
+#' View(fit$mat_coef[, c(1, ncol(fit$mat_coef) )])
 #' @export
 kmcure <- function(formula, cureform, data,
                    multiOptim_maxit = 100, multiOptim_reltol = 0.001,
-                   reltolOptim = 1e-8, maxitOptim = 500, silent = FALSE){
+                   optim_reltol = 1e-8, optim_maxit = 500, silent = FALSE){
 
   tryCatch({mf <- model.frame(formula,data)},
            error = function(e) {
@@ -56,6 +56,6 @@ kmcure <- function(formula, cureform, data,
 # return(list(time=time, event=event, survPreds=X, curePreds=Z))
 fit = kmekde(time = time, event = event, survPreds = X, curePreds = Z,
              multiOptim_maxit = multiOptim_maxit, multiOptim_reltol = multiOptim_reltol,
-             reltolOptim = reltolOptim, maxitOptim = maxitOptim, silent = silent)
+             optim_reltol = optim_reltol, optim_maxit = optim_maxit, silent = silent)
 return(fit)
 }

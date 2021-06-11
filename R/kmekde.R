@@ -10,16 +10,16 @@
 #' @param multiOptim_reltol is the relative tolerance in continuing multi-optimization procedure
 #' @param multiOptim_stopTime is an optional time limit to stop multi-optimization based on calculation time per minutes
 #' @param multiOptim_stopLLp is an extra option for stopping multi-optimization based on the proportion of log-likelihood successive changes in multi-optimization. It is a value between 0 to 1 where for example, 0 disable this stopping rule, and 0.1 stop multi-optimization when the difference in the latest loglik runs becomes less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.
-#' @param reltolOptim is the relative tolerance in continuing of each optimization
-#' @param maxitOptim is the maximum of allowed iterations in each optimization
+#' @param optim_reltol is the relative tolerance in continuing of each optimization
+#' @param optim_maxit is the maximum of allowed iterations in each optimization
 #' @param silent a Boolean value which if set to TRUE it prevent from showing output messages
-#' @param shooting a Boolean value which if it is set to TRUE it uses a shooting method (coordinate descent) instead of the usual gradient descent algorithm to find the optimum of Gamma and Beta coefficients conditionally on the estimate of the other one.
-#' @param reltolShoot is the relative tolerance in continuing the shooting algorithm optimization
-#' @param maxitShoot is the maximum of allowed iterations in the shooting algorithm optimization
-#' @param reltolShoot_beta is the relative tolerance in continuing optimization of the beta part in the shooting algorithm
-#' @param maxitShoot_beta is the maximum of allowed iterations in the optimization of the beta part in the shooting algorithm
-#' @param reltolShoot_gamma is the relative tolerance in continuing optimization of the gamma part in the shooting algorithm
-#' @param maxitShoot_gamma is the maximum of allowed iterations in the optimization of the gamma part in the shooting algorithm
+#' @param conditional a Boolean value which, if set to TRUE it uses a conditional procedure to iterative estimate parameters of survival and cure sub-models conditional on the last estimation of the other part
+#' @param cond_reltol is the relative tolerance in continuing the conditional algorithm optimization
+#' @param cond_maxit is the maximum of allowed iterations in the conditional algorithm optimization
+#' @param cond_reltol_beta is the relative tolerance in continuing optimization of the beta part in the conditional algorithm
+#' @param cond_maxit_beta is the maximum of allowed iterations in the optimization of the beta part in the conditional algorithm
+#' @param cond_reltol_gamma is the relative tolerance in continuing optimization of the gamma part in the conditional algorithm
+#' @param cond_maxit_gamma is the maximum of allowed iterations in the optimization of the gamma part in the conditional algorithm
 #' @param fix_gammacoef is an optional vector of fix gamma coefficients that could be used to estimate beta coefficients based of them. This can be used for conditional optimization.
 #' @param fix_betacoef is an optional vector of fix beta coefficients that could be used to estimate gamma coefficients based of them. This can be used for conditional optimization.
 #' @param bandcoef is an optional coefficient to multiply the optimal kernel smoothing band-width (Please note the loglik values resulted by applying different "bandcoef" are not comparable. So, changing the default value of this option is Not recommended.)
@@ -43,7 +43,7 @@
 #' }
 #'
 #' fit2 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
-#'                shooting=TRUE)
+#'                conditional=TRUE)
 #' print(fit2$exitcode)
 #' print(fit2$loglik)
 #' print(fit2$timeD)
@@ -77,11 +77,11 @@
 kmekde <- function(time, event, survPreds, curePreds=NULL,
                    multiOptim_maxit = 1, multiOptim_reltol = 0.001,
                    multiOptim_stopTime = NULL, multiOptim_stopLLp = 0,
-                   reltolOptim = 1e-8, maxitOptim = 500,
-                   silent = FALSE, shooting = FALSE,
-                   reltolShoot = 1e-8, maxitShoot = 250,
-                   reltolShoot_beta = 1e-8, maxitShoot_beta = 500,
-                   reltolShoot_gamma = 1e-5, maxitShoot_gamma = 50,
+                   optim_reltol = 1e-8, optim_maxit = 500,
+                   silent = FALSE, conditional = FALSE,
+                   cond_reltol = 1e-8, cond_maxit = 250,
+                   cond_reltol_beta = 1e-8, cond_maxit_beta = 500,
+                   cond_reltol_gamma = 1e-5, cond_maxit_gamma = 50,
                    fix_gammacoef = NULL, fix_betacoef = NULL,
                    bandcoef=1, try_hessian=FALSE,
                    optim_method = "Nelder-Mead", optim_init = NULL)
@@ -251,15 +251,15 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     if(length(optim_init)==length(theta)) theta = as.numeric(optim_init)
 
     if(length(fix_gammacoef)==length(b.ini)){ # then use fix_gammacoef to estimate just the beta part
-      methodName = "KMEKDE-fixB"
+      methodName = "KMEKDE-fixGamma"
       b.par = fix_gammacoef
       beta.par = theta[(length(b.ini)+1) : length(theta)]
 
       #Beta-Part
       if(length(beta.par>1)){
-        beta.optim = optim(par=beta.par, fn=loglik_fix_b, b.par=b.par, hessian = FALSE, control = list(reltol=reltolShoot_beta, maxit = maxitShoot_beta), method = optim_method)
+        beta.optim = optim(par=beta.par, fn=loglik_fix_b, b.par=b.par, hessian = FALSE, control = list(reltol=cond_reltol_beta, maxit = cond_maxit_beta), method = optim_method)
       }else{
-        beta.optim = optim(par=beta.par, fn=loglik_fix_b, b.par=b.par, hessian = FALSE, control = list(reltol=reltolShoot_beta, maxit = maxitShoot_beta), method = "Brent")
+        beta.optim = optim(par=beta.par, fn=loglik_fix_b, b.par=b.par, hessian = FALSE, control = list(reltol=cond_reltol_beta, maxit = cond_maxit_beta), method = "Brent")
       }
       beta.par = beta.optim$par
       conv = beta.optim$convergence
@@ -272,16 +272,16 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
 
       #Gamma-Part
       if(length(b.par>1)){
-        b.optim = optim(par=b.par, fn=loglik_fix_beta, beta.par=beta.par, hessian = FALSE, control = list(reltol=reltolShoot_gamma, maxit = maxitShoot_gamma), method = optim_method)
+        b.optim = optim(par=b.par, fn=loglik_fix_beta, beta.par=beta.par, hessian = FALSE, control = list(reltol=cond_reltol_gamma, maxit = cond_maxit_gamma), method = optim_method)
       }else{
-        b.optim = optim(par=b.par, fn=loglik_fix_beta, beta.par=beta.par, hessian = FALSE, control = list(reltol=reltolShoot_gamma, maxit = maxitShoot_gamma), method = "Brent")
+        b.optim = optim(par=b.par, fn=loglik_fix_beta, beta.par=beta.par, hessian = FALSE, control = list(reltol=cond_reltol_gamma, maxit = cond_maxit_gamma), method = "Brent")
       }
       b.par = b.optim$par
       conv = b.optim$convergence
       thetaUpdate = c(b.par, beta.par)
 
-    }else if(shooting==TRUE){ # then use complete shooting optimization to estimate both of the b and beta parts
-      methodName = "KMEKDE-2Steps"
+    }else if(conditional==TRUE){ # then use complete conditional optimization to estimate both of the b and beta parts
+      methodName = "KMEKDE-conditional"
 
       iter = 1
       repeat{
@@ -292,35 +292,35 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
 
         #Gamma-Part
         if(length(b.par>1)){
-          b.optim = optim(par=b.par, fn=loglik_fix_beta, beta.par=beta.par, hessian = FALSE, control = list(reltol=reltolShoot_gamma, maxit = maxitShoot_gamma), method = optim_method)
+          b.optim = optim(par=b.par, fn=loglik_fix_beta, beta.par=beta.par, hessian = FALSE, control = list(reltol=cond_reltol_gamma, maxit = cond_maxit_gamma), method = optim_method)
         }else{
-          b.optim = optim(par=b.par, fn=loglik_fix_beta, beta.par=beta.par, hessian = FALSE, control = list(reltol=reltolShoot_gamma, maxit = maxitShoot_gamma), method = "Brent")
+          b.optim = optim(par=b.par, fn=loglik_fix_beta, beta.par=beta.par, hessian = FALSE, control = list(reltol=cond_reltol_gamma, maxit = cond_maxit_gamma), method = "Brent")
         }
         b.par = b.optim$par
 
         #Beta-Part
         if(length(beta.par>1)){
-          beta.optim = optim(par=beta.par, fn=loglik_fix_b, b.par=b.par, hessian = FALSE, control = list(reltol=reltolShoot_beta, maxit = maxitShoot_beta), method = optim_method)
+          beta.optim = optim(par=beta.par, fn=loglik_fix_b, b.par=b.par, hessian = FALSE, control = list(reltol=cond_reltol_beta, maxit = cond_maxit_beta), method = optim_method)
         }else{
-          beta.optim = optim(par=beta.par, fn=loglik_fix_b, b.par=b.par, hessian = FALSE, control = list(reltol=reltolShoot_beta, maxit = maxitShoot_beta), method = "Brent")
+          beta.optim = optim(par=beta.par, fn=loglik_fix_b, b.par=b.par, hessian = FALSE, control = list(reltol=cond_reltol_beta, maxit = cond_maxit_beta), method = "Brent")
         }
         beta.par = beta.optim$par
 
 
         thetaUpdate = c(b.par, beta.par)
-        reltolcondition = all(abs((thetaUpdate-theta)) < (reltolShoot * (abs(theta) + reltolShoot)))
-        if(iter>maxitShoot) conv = 1
+        reltolcondition = all(abs((thetaUpdate-theta)) < (cond_reltol * (abs(theta) + cond_reltol)))
+        if(iter>cond_maxit) conv = 1
         if(reltolcondition) conv = 0
-        if(reltolcondition | (iter>maxitShoot)) (break)
+        if(reltolcondition | (iter>cond_maxit)) (break)
 
         iter = iter+1
         theta = thetaUpdate
       }
 
-    }else{# then use one-step concurrent optimization to estimate both of the b and beta parts
-      methodName = "KMEKDE-1Step"
+    }else{# then use concurrent optimization to estimate both of the b and beta parts
+      methodName = "KMEKDE-concurrent"
 
-      theta.optim = optim(par=theta, fn=loglik, hessian = FALSE, control = list(reltol=reltolOptim, maxit = maxitOptim), method = optim_method)
+      theta.optim = optim(par=theta, fn=loglik, hessian = FALSE, control = list(reltol=optim_reltol, maxit = optim_maxit), method = optim_method)
       thetaUpdate = theta.optim$par
       conv = theta.optim$convergence
     }
@@ -348,7 +348,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
           }
           theta = thetaUpdate
           timeSloop = Sys.time()
-          theta.optim = optim(par=theta, fn=loglik, hessian = FALSE, control = list(reltol=reltolOptim, maxit = maxitOptim), method = optim_method)
+          theta.optim = optim(par=theta, fn=loglik, hessian = FALSE, control = list(reltol=optim_reltol, maxit = optim_maxit), method = optim_method)
           timeE = Sys.time()
           timeD = difftime(timeE, timeSloop, units = "mins")
           vectimeD = c(vectimeD, timeD)
@@ -383,7 +383,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
       if(!silent) cat("Optimization #", length(vecLL)+1 ,"is started that try to find an estimate for the Hessian matrix.\n")
       tryCatch({
         theta = thetaUpdate
-        theta.optim = optim(par=theta, fn=loglik, hessian = TRUE, control = list(reltol=reltolOptim, maxit = maxitOptim), method = optim_method)
+        theta.optim = optim(par=theta, fn=loglik, hessian = TRUE, control = list(reltol=optim_reltol, maxit = optim_maxit), method = optim_method)
         thetaUpdate = theta.optim$par
         mat_coef = cbind(mat_coef, thetaUpdate)
         LL = theta.optim$value
