@@ -48,9 +48,9 @@ kmekde(
 
 \item{multiOptim_stopLLp}{is an extra option for stopping multi-optimization based on the proportion of log-likelihood successive changes in multi-optimization. It is a value between 0 to 1 where for example, 0 disable this stopping rule, and 0.1 stop multi-optimization when the difference in the latest loglik runs becomes less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.}
 
-\item{reltolOptim}{is the relative tolerance in continuing of each optimization run}
+\item{reltolOptim}{is the relative tolerance in continuing of each optimization}
 
-\item{maxitOptim}{is the maximum of allowed iterations in each optimization run}
+\item{maxitOptim}{is the maximum of allowed iterations in each optimization}
 
 \item{silent}{a Boolean value which if set to TRUE it prevent from showing output messages}
 

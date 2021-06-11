@@ -10,8 +10,8 @@
 #' @param multiOptim_reltol is the relative tolerance in continuing multi-optimization
 #' @param multiOptim_stopTime is an optional time limit to stop multi-optimization based on calculation time per minutes
 #' @param multiOptim_stopLLp is an extra option for stopping multi-optimization based on the proportion of log-likelihood successive changes in multi-optimization. It is a value between 0 to 1 where for example, 0 disable this stopping rule, and 0.1 stop multi-optimization when the difference in the latest loglik runs becomes less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.
-#' @param reltolOptim is the relative tolerance in continuing of each optimization run
-#' @param maxitOptim is the maximum of allowed iterations in each optimization run
+#' @param reltolOptim is the relative tolerance in continuing of each optimization
+#' @param maxitOptim is the maximum of allowed iterations in each optimization
 #' @param silent a Boolean value which if set to TRUE it prevent from showing output messages
 #' @param shooting a Boolean value which if it is set to TRUE it uses a shooting method (coordinate descent) instead of the usual gradient descent algorithm to find the optimum of Gamma and Beta coefficients conditionally on the estimate of the other one.
 #' @param reltolShoot is the relative tolerance in continuing the shooting algorithm optimization

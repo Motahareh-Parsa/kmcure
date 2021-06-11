@@ -4,14 +4,33 @@
 \alias{kmcure}
 \title{Title}
 \usage{
-kmcure(formula, cureform, data)
+kmcure(
+  formula,
+  cureform,
+  data,
+  multiOptim_maxit = 100,
+  multiOptim_reltol = 0.001,
+  reltolOptim = 1e-08,
+  maxitOptim = 500,
+  silent = FALSE
+)
 }
 \arguments{
-\item{formula}{is the function input}
+\item{formula}{is the formula of survival sub-model which define time and event variables using Surv function on the left of a tilde symbol and it define list of survival predictors on the right of the tilde symbol.}
 
-\item{cureform}{is the function input}
+\item{cureform}{is the formula of cure sub-model which define predictors of cure sub-model on the right of a tilde symbol, if omitted program use just an intercept in the cure sub-model}
 
-\item{data}{is the function input}
+\item{data}{is the input data frame which its columns' names can be called in the formula and the cureform}
+
+\item{multiOptim_maxit}{is the maximum of allowed multi-optimization.}
+
+\item{multiOptim_reltol}{is the relative tolerance in continuing multi-optimization}
+
+\item{reltolOptim}{is the relative tolerance in continuing of each optimization}
+
+\item{maxitOptim}{is the maximum of allowed iterations in each optimization}
+
+\item{silent}{a Boolean value which if set to TRUE it prevent from showing output messages}
 }
 \value{
 is a kmcure object
@@ -21,6 +40,9 @@ Title
 }
 \examples{
 data(hfp)
-kmcure(11,22,33)
-
+#fit = kmcure(formula = Surv(Time, Status) ~ TRT,cureform = ~TRT,data = bmt)
+fit = kmcure(formula = Surv(TIME, Event) ~
+Gender+Smoking+Diabetes+BP+Anaemia+Age+EF+Sodium+Creatinine+Pletelets+CPK,
+cureform = ~Gender+Smoking+Diabetes+BP+Anaemia+Age+EF+Sodium+Creatinine+Pletelets+CPK,
+data = bmt)
 }
