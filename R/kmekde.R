@@ -325,6 +325,10 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
       conv = theta.optim$convergence
     }
 
+    timeE = Sys.time()
+    timeD = difftime(timeE, timeS, units = "mins")
+    vectimeD = timeD
+
     ##### End the code of the main optimization section (multi-optimization #1)
     vecLL = -1*loglik(thetaUpdate)
     vecconv = conv
@@ -342,7 +346,11 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
             if (timeD > multiOptim_stopTime) (break)
           }
           theta = thetaUpdate
+          timeSloop = Sys.time()
           theta.optim = optim(par=theta, fn=loglik, hessian = FALSE, control = list(reltol=reltolOptim, maxit = maxitOptim), method = optim_method)
+          timeE = Sys.time()
+          timeD = difftime(timeE, timeSloop, units = "mins")
+          vectimeD = c(vectimeD, timeD)
           thetaUpdate = theta.optim$par
           mat_coef = cbind(mat_coef, thetaUpdate)
           LL = theta.optim$value
@@ -406,25 +414,25 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     #print(coef)
     rownames(mat_coef) = rownames(coef)
     if(!silent) cat("The program run is successfully finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
-    return( list(exitcode = 0, coef=coef, method = methodName, timeD=timeD, AIC=vecAIC[length(vecAIC)], loglik=vecLL[length(vecLL)], pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv))
+    return( list(exitcode = 0, coef=coef, method = methodName, timeD=timeD, AIC=vecAIC[length(vecAIC)], loglik=vecLL[length(vecLL)], pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD))
   }, warning = function(w) {
     if(!silent){
       message("A warning in the KMEKDE fitting is occured!")
       message(w)
     }
-    return( list(exitcode = 1, coef=coef, method = methodName, timeD=timeD, AIC=vecAIC[length(vecAIC)], loglik=vecLL[length(vecLL)], pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv))
+    return( list(exitcode = 1, coef=coef, method = methodName, timeD=timeD, AIC=vecAIC[length(vecAIC)], loglik=vecLL[length(vecLL)], pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD))
   }, error = function(e) {
     if(!silent){
       message("An error in the KMEKDE fitting is occured!")
       message(e)
     }
-    return(list(exitcode = 2, coef=NA, method = methodName, timeD = NA, AIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA))
+    return(list(exitcode = 2, coef=NA, method = methodName, timeD = NA, AIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA, vectimeD=NA))
   }, finally = {
     if(all(typeof(coef)!="closure")) if(any(is.na(coef))){
       if(!silent) {
         message("NA coefficients in the KMEKDE fitting is occured!")
       }
-      return(list(exitcode = 3, coef=NA, method = methodName, timeD = NA, AIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA))
+      return(list(exitcode = 3, coef=NA, method = methodName, timeD = NA, AIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA, vectimeD=NA))
     }
   }
   ) # end tryCatch
