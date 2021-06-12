@@ -90,11 +90,17 @@ Fits AFT (Accelerated Failure Time) Semiparametric Mixture Cure Model using the 
 
 data(hfp)
 
-fit1 = kmekde (time = hfp[,1],
-               event = hfp[,2],
-               survPreds = hfp[,-(1:2)],
-               curePreds = hfp[,-(1:2)],
-               multiOptim_maxit = 10)
+time = hfp$Time
+
+event = hfp$Event
+
+survPreds = hfp[, c(3:15)]
+names(survPreds)
+
+curePreds = hfp[, c(3:15)]
+names(curePreds)
+
+fit1 = kmekde (time, event, survPreds, curePreds, multiOptim_maxit = 10)
 
 names(fit1)
 

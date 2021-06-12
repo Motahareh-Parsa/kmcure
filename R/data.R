@@ -8,19 +8,26 @@
 #'
 #' @format A data frame with 299 rows and 13 variables:
 #' \describe{
-#'   \item{TIME}{Time to death duo to Cardiovascular Heart Disease (CHD) by day}
+#'   \item{Time}{Time to death duo to Cardiovascular Heart Disease (CHD) per day}
 #'   \item{Event}{Event status which is coded as 1 for event and 0 for censoring}
-#'   \item{Gender}{Gender which is coded as 0 for women and 1 for men}
+#'   \item{Gender}{Gender variable which is coded 1 for men and 0 for women}
 #'   \item{Smoking}{Smoking status}
 #'   \item{Diabetes}{Diabetes status}
 #'   \item{BP}{Blood Pressure (BP) status}
 #'   \item{Anaemia}{Anaemia status}
 #'   \item{Age}{Age by years}
 #'   \item{EF}{Ejection Fraction (EF)}
-#'   \item{Sodium}{Sodium levels}
-#'   \item{Creatinine}{Creatinine}
-#'   \item{Pletelets}{Pletelets}
+#'   \item{Sodium}{serum Sodium}
+#'   \item{Creatinine}{serum Creatinine}
+#'   \item{Platelets}{Platelets}
 #'   \item{CPK}{Creatinine Phosphokinase}
+#'   \item{EFlow}{Ejection Fraction less than or equal 30}
+#'   \item{EFmed}{Ejection Fraction greater than 30 but less than or equal 45}
+#'   \item{EFhigh}{Ejection Fraction greater than 45}
+#'   \item{PLTlow}{Platelets less than or equal the first quartile}
+#'   \item{PLTmed}{Platelets greater than the first quartile but less than or equal the third quartile}
+#'   \item{PLThigh}{Platelets greater than the third quartile}
+#'   \item{logCPK}{Natural logarithms of Creatinine Phosphokinase}
 #' }
 #' @source \url{https://doi.org/10.1371/journal.pone.0181001}
 "hfp"

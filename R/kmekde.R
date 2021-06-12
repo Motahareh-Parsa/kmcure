@@ -33,11 +33,17 @@
 #'
 #' data(hfp)
 #'
-#' fit1 = kmekde (time = hfp[,1],
-#'                event = hfp[,2],
-#'                survPreds = hfp[,-(1:2)],
-#'                curePreds = hfp[,-(1:2)],
-#'                multiOptim_maxit = 10)
+#' time = hfp$Time
+#'
+#' event = hfp$Event
+#'
+#' survPreds = hfp[, c(3:15)]
+#' names(survPreds)
+#'
+#' curePreds = hfp[, c(3:15)]
+#' names(curePreds)
+#'
+#' fit1 = kmekde (time, event, survPreds, curePreds, multiOptim_maxit = 10)
 #'
 #' names(fit1)
 #'
@@ -67,18 +73,6 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
   if(multiOptim_maxit > 1000) multiOptim_maxit = 1000
   if(multiOptim_stopLLp < 0) multiOptim_stopLLp = 0
   if(multiOptim_stopLLp > 1) multiOptim_stopLLp = 1
-
-  # data = list(time=time, event=event, survPreds=survPreds, curePreds=curePreds)
-  # settings = list(multiOptim_maxit=multiOptim_maxit, multiOptim_reltol=multiOptim_reltol,
-  #                 multiOptim_stopTime=multiOptim_stopTime, multiOptim_stopLLp=multiOptim_stopLLp,
-  #                 optim_reltol=optim_reltol, optim_maxit=optim_maxit,
-  #                 silent=silent, conditional=conditional,
-  #                 cond_reltol=cond_reltol, cond_maxit=cond_maxit,
-  #                 cond_reltol_beta=cond_reltol_beta, cond_maxit_beta=cond_maxit_beta,
-  #                 cond_reltol_gamma=cond_reltol_gamma, cond_maxit_gamma=cond_maxit_gamma,
-  #                 fix_gammacoef = fix_gammacoef, fix_betacoef= fix_betacoef,
-  #                 bandcoef=bandcoef, try_hessian=try_hessian,
-  #                 optim_method=optim_method, optim_init=optim_init )
 
   methodName = "KMEKDE"
 
