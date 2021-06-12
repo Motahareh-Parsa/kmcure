@@ -88,8 +88,8 @@ if (scale==TRUE){
 }
 
 indexMaxLL = which.max(fit$vecLL)
-fit$coef = fit$mat_coef [,indexMaxLL]
-fit$stdcoef = fit$stdmat_coef [,indexMaxLL]
+fit$coef = as.matrix(fit$mat_coef [,indexMaxLL])
+fit$stdcoef = as.matrix(fit$stdmat_coef [,indexMaxLL])
 
 fit$scale$survPreds = scaleX
 fit$scale$curePreds = scaleZ
