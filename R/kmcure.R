@@ -53,29 +53,22 @@ kmcure <- function(time, event, survPreds, curePreds=NULL,
                   scale=scale, silent=silent,
                   optim_method=optim_method, optim_init=optim_init)
 
+  X = scale(survPreds, center = FALSE, scale = TRUE)
+  scaleX = attr(X, "scaled:scale")
 
-  if(scale==TRUE){
-    X = scale(survPreds, center = FALSE, scale = TRUE)
-    scaleX = attr(X, "scaled:scale")
-    if(is.null(curePreds)){
-      Z = NULL
-      scaleZ = NULL
-    }else{
-      Z = scale(curePreds, center = FALSE, scale = TRUE)
-      scaleZ = attr(Z, "scaled:scale")
-    }
-
+  if(is.null(curePreds)){
+    Z = NULL
+    scaleZ = NULL
   }else{
-    X = survPreds
-    scaleX = rep(1, ncol(X))
-    if(is.null(curePreds)){
-      Z = NULL
-      scaleZ = NULL
-    }else{
-      Z = curePreds
-      scaleZ = rep(1, ncol(Z))
+    Z = scale(curePreds, center = FALSE, scale = TRUE)
+    scaleZ = attr(Z, "scaled:scale")
+  }
 
-    }
+  scaleFull = c(1, scaleZ, scaleX)
+
+  if(scale==FALSE){
+    X = survPreds
+    Z = curePreds
   }
 
 fit = kmekde(time = time, event = event, survPreds = X, curePreds = Z,
@@ -85,24 +78,22 @@ fit = kmekde(time = time, event = event, survPreds = X, curePreds = Z,
 
 if (scale==TRUE){
   fit$stdmat_coef = fit$mat_coef
-  stdmat_coef =  fit$stdmat_coef
-  backstdmat_coef = matrix(NA, nrow=nrow(stdmat_coef), ncol=ncol(stdmat_coef))
-  backstdmat_coef[1,] = stdmat_coef[1,]
-  if(!is.null(curePreds)){
-    backstdmat_coef[2:(1+length(scaleX)), ] = stdmat_coef[2:(1+length(scaleX)), ] / scaleX
-  }
-  backstdmat_coef[(2+length(scaleX)):nrow(backstdmat_coef), ] = stdmat_coef[(2+length(scaleX)):nrow(backstdmat_coef), ]  / scaleZ
+  stdmat_coef =  fit$mat_coef
+  backstdmat_coef = stdmat_coef / scaleFull
   fit$mat_coef = backstdmat_coef
-  indexMaxLL = which.max(fit$vecLL)
-  fit$coef = fit$mat_coef [,indexMaxLL]
-  fit$stdcoef = fit$stdmat_coef [,indexMaxLL]
 }else{
-  fit$stdmat_coef = matrix(NA, nrow=nrow(fit$mat_coef), ncol=ncol(fit$mat_coef))
-  fit$stdcoef = rep(NA, length(fit$coef))
+  mat_coef = fit$mat_coef
+  stdmat_coef = mat_coef * scaleFull
+  fit$stdmat_coef = stdmat_coef
 }
+
+indexMaxLL = which.max(fit$vecLL)
+fit$coef = fit$mat_coef [,indexMaxLL]
+fit$stdcoef = fit$stdmat_coef [,indexMaxLL]
 
 fit$scale$survPreds = scaleX
 fit$scale$curePreds = scaleZ
+fit$scale$fullScale = scaleFull
 
 fit$data$time = time
 fit$data$event = event
