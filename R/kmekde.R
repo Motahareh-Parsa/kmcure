@@ -1,83 +1,60 @@
-#' The "kmcure" function call this function that accept matrix inputs to fits AFT Semiparametric Mixture Cure Model using the KME-KDE method
+#' The computational function that is called by the "kmcure" function to fits AFT Semiparametric Mixture Cure Model using the KME-KDE method
 #'
-#' Fits AFT (Accelerated Failure Time) Semiparametric Mixture Cure Model using the KME-KDE (Kaplan-Meier Estimation and Kernel Density Estimator) method where inputs data be provided as matrices.
+#' Fits AFT (Accelerated Failure Time) Semiparametric Mixture Cure Model using the KME-KDE (Kaplan-Meier Estimation and Kernel Density Estimator) method.
 #'
-#' @param time is the observed time to event variable
-#' @param event is the status variable: 1 for event and 0 for censoring
-#' @param survPreds is the matrix of survival predictor variable(s)
-#' @param curePreds is the (optional) matrix of curing predictor variable(s)
-#' @param multiOptim_maxit is the maximum of allowed multiple optimization. If the convergence of "optim" does not meet, the program does multiple optimization.
-#' @param multiOptim_reltol is the relative tolerance in continuing multiple optimization procedure
-#' @param multiOptim_stopTime is an optional time limit to stop multi-optimization based on calculation time per minutes
-#' @param multiOptim_stopLLp is an extra option for stopping multi-optimization based on the proportion of log-likelihood successive changes in multi-optimization. It is a value between 0 to 1 where for example, 0 disable this stopping rule, and 0.1 stop multi-optimization when the difference in the latest loglik runs becomes less or equal to 0.1 of difference between loglik values in the first and second "optim" runs.
-#' @param optim_reltol is the relative tolerance in continuing of each optimization
-#' @param optim_maxit is the maximum of allowed iterations in each optimization
-#' @param silent a Boolean value which if set to TRUE it prevent from showing output messages
-#' @param conditional a Boolean value which, if set to TRUE it uses a conditional procedure to iterative estimate parameters of survival and cure sub-models conditional on the last estimation of the other part
-#' @param cond_reltol is the relative tolerance in continuing the conditional algorithm optimization
-#' @param cond_maxit is the maximum of allowed iterations in the conditional algorithm optimization
-#' @param cond_reltol_beta is the relative tolerance in continuing optimization of the beta part in the conditional algorithm
-#' @param cond_maxit_beta is the maximum of allowed iterations in the optimization of the beta part in the conditional algorithm
-#' @param cond_reltol_gamma is the relative tolerance in continuing optimization of the gamma part in the conditional algorithm
-#' @param cond_maxit_gamma is the maximum of allowed iterations in the optimization of the gamma part in the conditional algorithm
-#' @param fix_gammacoef is an optional vector of fix gamma coefficients that could be used to estimate beta coefficients based of them. This can be used for conditional optimization.
-#' @param fix_betacoef is an optional vector of fix beta coefficients that could be used to estimate gamma coefficients based of them. This can be used for conditional optimization.
-#' @param bandcoef is an optional coefficient to multiply the optimal kernel smoothing band-width (Please note the loglik values resulted by applying different "bandcoef" are not comparable. So, changing the default value of this option is Not recommended.)
-#' @param try_hessian is a Boolean with default value of FALSE. If this set to TRUE, the Hessian matrix will be evaluated after last optimization by applying a final optimization that also try to estimate the hessian matrix
-#' @param optim_method is the method of optimization: "Nelder-Mead" and "SANN" are supported
-#' @param optim_init is an optional vector of initial values to be used in continuing optimization of previously estimated coefficients by optionally providing them as initial values.
+#' @param time a survival time to event variable.
+#' @param event a survival status variable: 1 for event and 0 for censoring.
+#' @param survPreds a matrix of survival predictor variable(s).
+#' @param curePreds an optional matrix of curing predictor variable(s).
+#' @param multiOptim_maxit a number showing the maximum of allowed multiple optimization. The program uses multiple optimization if the convergence of "optim" does not meet.
+#' @param multiOptim_reltol a number showing the relative tolerance in continuing multiple optimization procedure.
+#' @param multiOptim_stopTime an optional number showing time limit per minutes to stop multi-optimization based on calculation time per minutes.
+#' @param multiOptim_stopLLp an optional proportion defining a stopping rule based on changes in log-likelihood in successive multi-optimization. 0 disable this stopping rule, and 0.1 stop multi-optimization when the difference in the latest loglik runs becomes less than or equal to 0.1 of difference between loglik values in the first and second "optim" runs.
+#' @param optim_reltol a number showing the relative tolerance in continuing of each optimization.
+#' @param optim_maxit a number showing the maximum of allowed iterations in each optimization.
+#' @param silent a Boolean value which if set to TRUE it prevent from showing output messages.
+#' @param conditional a Boolean value which, if set to TRUE it uses a conditional procedure to iterative estimate parameters of survival and cure sub-models conditional on the last estimation of the other part.
+#' @param cond_reltol a number showing the relative tolerance in continuing the conditional algorithm optimization.
+#' @param cond_maxit a number showing the maximum of allowed iterations in the conditional algorithm optimization.
+#' @param cond_reltol_beta a number showing the relative tolerance in continuing optimization of the beta part in the conditional algorithm.
+#' @param cond_maxit_beta a number showing the maximum of allowed iterations in the optimization of the beta part in the conditional algorithm.
+#' @param cond_reltol_gamma a number showing the relative tolerance in continuing optimization of the gamma part in the conditional algorithm.
+#' @param cond_maxit_gamma a number showing the maximum of allowed iterations in the optimization of the gamma part in the conditional algorithm.
+#' @param fix_gammacoef an optional numeric vector of fix gamma coefficients that could be used to estimate beta coefficients based of them. This can be used for conditional optimization.
+#' @param fix_betacoef an optional numeric vector of fix beta coefficients that could be used to estimate gamma coefficients based of them. This can be used for conditional optimization.
+#' @param bandcoef an optional coefficient to multiply the optimal kernel smoothing band-width (Please note the loglik values resulted by applying different "bandcoef" are not comparable. So, changing the default value of this option is Not recommended).
+#' @param try_hessian a Boolean value with default value of FALSE. If this set to TRUE, the Hessian matrix will be evaluated after last optimization by applying a final optimization that also try to estimate the hessian matrix.
+#' @param optim_method a string value showing the method of optimization: "Nelder-Mead" and "SANN" are supported.
+#' @param optim_init an optional numeric vector of initial values. For example, it could be the estimated coefficients of a previous fit to be used in continuing of optimization.
 #'
 #' @return a list of "exitcode" (0: no warning or error, 1: warning, 2 or 3: error), "coef" (estimated coefficients), "AIC", etc. check names(fit) for more information.
 #'
 #' @examples
+#'
 #' data(hfp)
 #'
-#' fit1 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)])
+#' fit1 = kmekde (time = hfp[,1],
+#'                event = hfp[,2],
+#'                survPreds = hfp[,-(1:2)],
+#'                curePreds = hfp[,-(1:2)],
+#'                multiOptim_maxit = 10)
 #'
 #' names(fit1)
 #'
 #' if(fit1$exitcode==0){
 #' print(fit1$loglik)
 #' print(fit1$timeD)
-#' # print(fit1$coef)
+#' print(fit1$coef)
 #' }
-#'
-#' fit2 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
-#'                conditional=TRUE)
-#' print(fit2$exitcode)
-#' print(fit2$loglik)
-#' print(fit2$timeD)
-#' # print(fit2$coef)
-#'
-#' fit3 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
-#'                multiOptim_maxit = 5)
-#' print(fit3$exitcode)
-#' print(fit3$loglik)
-#' print(fit3$timeD)
-#' # print(fit3$coef)
-#'
-#' fit4 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
-#'                multiOptim_maxit = 5, optim_init = fit3$coef)
-#' print(fit4$exitcode)
-#' print(fit4$loglik)
-#' print(fit4$timeD)
-#' # print(fit4$coef)
-#'
-#' # fit5 = kmekde (time=hfp[,1], event=hfp[,2], survPreds=hfp[,-(1:2)], curePreds=hfp[,-(1:2)],
-#' #                multiOptim_maxit = 500, multiOptim_stopTime = 10) # limit run to 10 minutes
-#' # print(fit5$exitcode)
-#' # print(fit5$loglik)
-#' # print(fit5$timeD)
-#' # print(fit5$coef)
 #'
 #' @import survival stats
 #' @importFrom survival Surv survfit
 #' @importFrom stats binomial dnorm glm lm optim var
 #' @export
 kmekde <- function(time, event, survPreds, curePreds=NULL,
-                   multiOptim_maxit = 1, multiOptim_reltol = 0.001,
+                   multiOptim_maxit = 10, multiOptim_reltol = 0.001,
                    multiOptim_stopTime = NULL, multiOptim_stopLLp = 0,
-                   optim_reltol = 1e-8, optim_maxit = 500,
+                   optim_reltol = 1e-16, optim_maxit = 500,
                    silent = FALSE, conditional = FALSE,
                    cond_reltol = 1e-8, cond_maxit = 250,
                    cond_reltol_beta = 1e-8, cond_maxit_beta = 500,
@@ -90,6 +67,18 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
   if(multiOptim_maxit > 1000) multiOptim_maxit = 1000
   if(multiOptim_stopLLp < 0) multiOptim_stopLLp = 0
   if(multiOptim_stopLLp > 1) multiOptim_stopLLp = 1
+
+  # data = list(time=time, event=event, survPreds=survPreds, curePreds=curePreds)
+  # settings = list(multiOptim_maxit=multiOptim_maxit, multiOptim_reltol=multiOptim_reltol,
+  #                 multiOptim_stopTime=multiOptim_stopTime, multiOptim_stopLLp=multiOptim_stopLLp,
+  #                 optim_reltol=optim_reltol, optim_maxit=optim_maxit,
+  #                 silent=silent, conditional=conditional,
+  #                 cond_reltol=cond_reltol, cond_maxit=cond_maxit,
+  #                 cond_reltol_beta=cond_reltol_beta, cond_maxit_beta=cond_maxit_beta,
+  #                 cond_reltol_gamma=cond_reltol_gamma, cond_maxit_gamma=cond_maxit_gamma,
+  #                 fix_gammacoef = fix_gammacoef, fix_betacoef= fix_betacoef,
+  #                 bandcoef=bandcoef, try_hessian=try_hessian,
+  #                 optim_method=optim_method, optim_init=optim_init )
 
   methodName = "KMEKDE"
 
@@ -338,8 +327,8 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
 
     ### Start applying further optimization if multiOptim_maxit > 1
     if(multiOptim_maxit >= 2){
-      if(vecconv[length(vecconv )]!=0){ # do only if the previous optimization was not converged
       for(k in 2:round(multiOptim_maxit)){
+        if(vecconv[length(vecconv )]!=0){ # do only if the previous optimization was not converged
         tryCatch({
           if(!is.null(multiOptim_stopTime)){
             timeE = Sys.time()
@@ -371,8 +360,8 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
           if(!silent) cat("Skip optimization #", k, " duo to ocurance of an error.\n")
         }
         ) # end tryCatch
-      } # end for loop of k
-    } # end if of vecconv
+      } # end if of vecconv
+    } # end for loop of k
     } # end if of multiOptim_maxit
 
     ### End applying further optimization if multiOptim_maxit > 1
