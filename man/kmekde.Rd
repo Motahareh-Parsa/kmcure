@@ -9,11 +9,11 @@ kmekde(
   event,
   survPreds,
   curePreds = NULL,
-  multiOptim_maxit = 10,
+  multiOptim_maxit = 1,
   multiOptim_reltol = 0.001,
   multiOptim_stopTime = NULL,
   multiOptim_stopLLp = 0,
-  optim_reltol = 1e-16,
+  optim_reltol = 1e-08,
   optim_maxit = 500,
   silent = FALSE,
   conditional = FALSE,
@@ -54,7 +54,7 @@ kmekde(
 
 \item{silent}{a Boolean value which if set to TRUE it prevent from showing output messages.}
 
-\item{conditional}{a Boolean value which, if set to TRUE it uses a conditional procedure to iterative estimate parameters of survival and cure sub-models conditional on the last estimation of the other part.}
+\item{conditional}{a Boolean value which, if set to TRUE it uses an iterative procedure that estimate parameters survival and cure sub-models conditionally on the last estimation of the other one.}
 
 \item{cond_reltol}{a number showing the relative tolerance in continuing the conditional algorithm optimization.}
 

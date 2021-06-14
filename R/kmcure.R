@@ -12,6 +12,7 @@
 #' @param optim_maxit a number showing the maximum of allowed iterations in each optimization.
 #' @param scale a Boolean value that if set to TRUE the program automatically transform predictors using scale function and then back transform the estimated coefficients to the original scale.
 #' @param silent a Boolean value which if set to TRUE it prevent from showing output messages.
+#' @param conditional a Boolean value which, if set to TRUE it uses an iterative procedure that estimate parameters survival and cure sub-models conditionally on the last estimation of the other one.
 #' @param optim_method a string value showing the method of optimization: "Nelder-Mead" and "SANN" are supported.
 #' @param optim_init an optional numeric vector of initial values. For example, it could be the estimated coefficients of a previous fit to be used in continuing of optimization.
 #'
@@ -44,13 +45,13 @@
 #' @export
 kmcure <- function(time, event, survPreds, curePreds=NULL,
                    multiOptim_maxit = 10, multiOptim_reltol = 0.001,
-                   optim_reltol = 1e-16, optim_maxit = 500,
-                   scale = FALSE, silent = FALSE,
+                   optim_reltol = 1e-8, optim_maxit = 500,
+                   scale = FALSE, silent = FALSE, conditional = FALSE,
                    optim_method = "Nelder-Mead", optim_init = NULL){
 
   settings = list(multiOptim_maxit=multiOptim_maxit, multiOptim_reltol=multiOptim_reltol,
                   optim_reltol=optim_reltol, optim_maxit=optim_maxit,
-                  scale=scale, silent=silent,
+                  scale=scale, silent=silent, conditional = conditional,
                   optim_method=optim_method, optim_init=optim_init)
 
   X = scale(survPreds, center = FALSE, scale = TRUE)
@@ -74,7 +75,7 @@ kmcure <- function(time, event, survPreds, curePreds=NULL,
 fit = kmekde(time = time, event = event, survPreds = X, curePreds = Z,
              multiOptim_maxit = multiOptim_maxit, multiOptim_reltol = multiOptim_reltol,
              optim_reltol = optim_reltol, optim_maxit = optim_maxit, silent = silent,
-             optim_method = optim_method, optim_init = optim_init)
+             conditional = conditional, optim_method = optim_method, optim_init = optim_init)
 
 if (scale==TRUE){
   fit$stdmat_coef = fit$mat_coef

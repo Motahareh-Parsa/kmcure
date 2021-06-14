@@ -2,6 +2,7 @@
 
 export(kmcure)
 export(kmekde)
+export(penalized)
 import(stats)
 import(survival)
 importFrom(stats,binomial)

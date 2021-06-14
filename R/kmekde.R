@@ -13,7 +13,7 @@
 #' @param optim_reltol a number showing the relative tolerance in continuing of each optimization.
 #' @param optim_maxit a number showing the maximum of allowed iterations in each optimization.
 #' @param silent a Boolean value which if set to TRUE it prevent from showing output messages.
-#' @param conditional a Boolean value which, if set to TRUE it uses a conditional procedure to iterative estimate parameters of survival and cure sub-models conditional on the last estimation of the other part.
+#' @param conditional a Boolean value which, if set to TRUE it uses an iterative procedure that estimate parameters survival and cure sub-models conditionally on the last estimation of the other one.
 #' @param cond_reltol a number showing the relative tolerance in continuing the conditional algorithm optimization.
 #' @param cond_maxit a number showing the maximum of allowed iterations in the conditional algorithm optimization.
 #' @param cond_reltol_beta a number showing the relative tolerance in continuing optimization of the beta part in the conditional algorithm.
@@ -58,9 +58,9 @@
 #' @importFrom stats binomial dnorm glm lm optim var
 #' @export
 kmekde <- function(time, event, survPreds, curePreds=NULL,
-                   multiOptim_maxit = 10, multiOptim_reltol = 0.001,
+                   multiOptim_maxit = 1, multiOptim_reltol = 0.001,
                    multiOptim_stopTime = NULL, multiOptim_stopLLp = 0,
-                   optim_reltol = 1e-16, optim_maxit = 500,
+                   optim_reltol = 1e-8, optim_maxit = 500,
                    silent = FALSE, conditional = FALSE,
                    cond_reltol = 1e-8, cond_maxit = 250,
                    cond_reltol_beta = 1e-8, cond_maxit_beta = 500,
@@ -316,7 +316,6 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     vecLL = -1*loglik(thetaUpdate)
     vecconv = conv
     if(!silent) cat("Optimization # 1 is completed. The optim log-likelihood is", vecLL[1], "\n")
-    vecAIC = -2*vecLL+2*length(thetaUpdate)
     mat_coef = matrix(thetaUpdate, nrow=length(theta), ncol = 1)
 
     ### Start applying further optimization if multiOptim_maxit > 1
@@ -342,8 +341,6 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
           conv = theta.optim$convergence
           vecconv = c(vecconv,conv)
           if(!silent) cat("Optimization #", length(vecLL) ,"is completed. The optim log-likelihood is", vecLL[length(vecLL)], "\n")
-          AIC = 2*LL+2*length(thetaUpdate)
-          vecAIC = c(vecAIC, AIC)
           LL_exitCondition = FALSE
           if( abs(vecLL[length(vecLL)-1]-vecLL[length(vecLL)]) <= abs(vecLL[2]-vecLL[1]) * multiOptim_stopLLp ) LL_exitCondition = TRUE
           reltolcondition = all(abs((thetaUpdate-theta)) < (multiOptim_reltol * (abs(theta) + multiOptim_reltol)))
@@ -371,8 +368,6 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
         mat_coef = cbind(mat_coef, thetaUpdate)
         LL = theta.optim$value
         vecLL = c(vecLL,-LL)
-        AIC = 2*LL+2*length(thetaUpdate)
-        vecAIC = c(vecAIC, AIC)
         estHessian = theta.optim$hessian
         if(!silent) cat("Optimization #", length(vecLL) ,"and claculating the Hessian matrix is completed. The optim log-likelihood is", vecLL[length(vecLL)], "\n")
       }, warning = function(condHessian) {
@@ -398,26 +393,36 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     colnames(coef) = ("Estimate")
     #print(coef)
     rownames(mat_coef) = rownames(coef)
+
+    vecAIC = -2*vecLL+2*length(coef)
+    vecBIC = -2*vecLL+log(n)*length(coef)
+
+    indexMaxLL = which.max(vecLL)
+    coef = as.matrix(mat_coef [,indexMaxLL])
+    loglik = vecLL[indexMaxLL]
+    AIC=vecAIC[indexMaxLL]
+    BIC=vecBIC[indexMaxLL]
+
     if(!silent) cat("The program run is successfully finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
-    return( list(exitcode = 0, coef=coef, method = methodName, timeD=timeD, AIC=vecAIC[length(vecAIC)], loglik=vecLL[length(vecLL)], pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD))
+    return( list(exitcode = 0, coef=coef, method = methodName, timeD=timeD, AIC=AIC, BIC=BIC, loglik=loglik, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD))
   }, warning = function(w) {
     if(!silent){
       message("A warning in the KMEKDE fitting is occured!")
       message(w)
     }
-    return( list(exitcode = 1, coef=coef, method = methodName, timeD=timeD, AIC=vecAIC[length(vecAIC)], loglik=vecLL[length(vecLL)], pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD))
+    return( list(exitcode = 1, coef=coef, method = methodName, timeD=timeD, AIC=AIC, BIC=BIC, loglik=loglik, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD))
   }, error = function(e) {
     if(!silent){
       message("An error in the KMEKDE fitting is occured!")
       message(e)
     }
-    return(list(exitcode = 2, coef=NA, method = methodName, timeD = NA, AIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA, vectimeD=NA))
+    return(list(exitcode = 2, coef=NA, method = methodName, timeD = NA, AIC=NA, BIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA, vectimeD=NA))
   }, finally = {
     if(all(typeof(coef)!="closure")) if(any(is.na(coef))){
       if(!silent) {
         message("NA coefficients in the KMEKDE fitting is occured!")
       }
-      return(list(exitcode = 3, coef=NA, method = methodName, timeD = NA, AIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA, vectimeD=NA))
+      return(list(exitcode = 3, coef=NA, method = methodName, timeD = NA, AIC=NA, BIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA, vectimeD=NA))
     }
   }
   ) # end tryCatch

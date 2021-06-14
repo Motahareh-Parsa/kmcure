@@ -11,10 +11,11 @@ kmcure(
   curePreds = NULL,
   multiOptim_maxit = 10,
   multiOptim_reltol = 0.001,
-  optim_reltol = 1e-16,
+  optim_reltol = 1e-08,
   optim_maxit = 500,
   scale = FALSE,
   silent = FALSE,
+  conditional = FALSE,
   optim_method = "Nelder-Mead",
   optim_init = NULL
 )
@@ -39,6 +40,8 @@ kmcure(
 \item{scale}{a Boolean value that if set to TRUE the program automatically transform predictors using scale function and then back transform the estimated coefficients to the original scale.}
 
 \item{silent}{a Boolean value which if set to TRUE it prevent from showing output messages.}
+
+\item{conditional}{a Boolean value which, if set to TRUE it uses an iterative procedure that estimate parameters survival and cure sub-models conditionally on the last estimation of the other one.}
 
 \item{optim_method}{a string value showing the method of optimization: "Nelder-Mead" and "SANN" are supported.}
 
