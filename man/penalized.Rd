@@ -2,9 +2,9 @@
 % Please edit documentation in R/penalized.R
 \name{penalized}
 \alias{penalized}
-\title{Find non-zero penalized coefficients using lars-lsa method}
+\title{Calculate Penalized AFT cure model which can be used for predictors selection}
 \usage{
-penalized(time, event, survPreds, curePreds = NULL)
+penalized(time, event, survPreds, curePreds = NULL, R = 100, silent = FALSE)
 }
 \arguments{
 \item{time}{a survival time to event variable.}
@@ -14,10 +14,31 @@ penalized(time, event, survPreds, curePreds = NULL)
 \item{survPreds}{a matrix of survival predictor variable(s).}
 
 \item{curePreds}{an optional matrix of curing predictor variable(s).}
+
+\item{R}{the number of Bootstrap iterations to be used in this procedure}
+
+\item{silent}{a Boolean value which if set to TRUE it prevent from showing output messages.}
 }
 \value{
-a Boolean vector which shows penalized coefficients that are non-zero
+a list showing estimated penalized standard coefficients and non-zoro coefficients
 }
 \description{
-Find non-zero penalized coefficients using lars-lsa method
+Calculate Penalized AFT cure model which can be used for predictors selection
+}
+\examples{
+
+data(hfp)
+
+time = hfp$Time
+
+event = hfp$Event
+
+survPreds = hfp[, c(3:15)]
+names(survPreds)
+
+curePreds = hfp[, c(3:15)]
+names(curePreds)
+
+# penalFit = penalized(time, event, survPreds, curePreds, R = 100)
+
 }
