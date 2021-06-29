@@ -54,6 +54,7 @@ is a kmcure object
 Fits AFT (Accelerated Failure Time) Semiparametric Mixture Cure Model using the KME-KDE (Kaplan-Meier Estimation and Kernel Density Estimator) method.
 }
 \examples{
+library(kmcure)
 
 data(hfp)
 
@@ -67,14 +68,14 @@ names(survPreds)
 curePreds = hfp[, c(3:15)]
 names(curePreds)
 
-fit1 = kmcure (time, event, survPreds, curePreds, multiOptim_maxit = 10)
+fit = kmcure (time, event, survPreds, curePreds, multiOptim_maxit = 10)
 
-names(fit1)
+names(fit)
 
-if(fit1$exitcode==0){
-print(fit1$loglik)
-print(fit1$timeD)
-print(fit1$coef)
-}
+fit$exitcode==TRUE # if TRUE the fit completed without any warning/error
+fit$loglik # the loglik of the fitted model
+fit$timeD # the calculation time
+fit$coef # the estimated coefficients
+
 
 }

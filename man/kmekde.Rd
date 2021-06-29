@@ -100,14 +100,13 @@ names(survPreds)
 curePreds = hfp[, c(3:15)]
 names(curePreds)
 
-fit1 = kmekde (time, event, survPreds, curePreds, multiOptim_maxit = 10)
+# fit1 = kmekde (time, event, survPreds, curePreds, multiOptim_maxit = 10)
 
-names(fit1)
+# names(fit1)
 
-if(fit1$exitcode==0){
-print(fit1$loglik)
-print(fit1$timeD)
-print(fit1$coef)
-}
+# fit1$exitcode==TRUE # if TRUE the fit completed without any warning/error
+# fit1$loglik # the loglik of the fitted model
+# fit1$timeD # the calculation time
+# fit1$coef # the estimated coefficients
 
 }

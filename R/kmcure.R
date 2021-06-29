@@ -19,6 +19,7 @@
 #' @return is a kmcure object
 #'
 #' @examples
+#' library(kmcure)
 #'
 #' data(hfp)
 #'
@@ -32,15 +33,15 @@
 #' curePreds = hfp[, c(3:15)]
 #' names(curePreds)
 #'
-#' fit1 = kmcure (time, event, survPreds, curePreds, multiOptim_maxit = 10)
+#' fit = kmcure (time, event, survPreds, curePreds, multiOptim_maxit = 10)
 #'
-#' names(fit1)
+#' names(fit)
 #'
-#' if(fit1$exitcode==0){
-#' print(fit1$loglik)
-#' print(fit1$timeD)
-#' print(fit1$coef)
-#' }
+#' fit$exitcode==TRUE # if TRUE the fit completed without any warning/error
+#' fit$loglik # the loglik of the fitted model
+#' fit$timeD # the calculation time
+#' fit$coef # the estimated coefficients
+#'
 #'
 #' @export
 kmcure <- function(time, event, survPreds, curePreds=NULL,
@@ -48,6 +49,8 @@ kmcure <- function(time, event, survPreds, curePreds=NULL,
                    optim_reltol = 1e-8, optim_maxit = 500,
                    scale = FALSE, silent = FALSE, conditional = FALSE,
                    optim_method = "Nelder-Mead", optim_init = NULL){
+
+  call <- match.call()
 
   settings = list(multiOptim_maxit=multiOptim_maxit, multiOptim_reltol=multiOptim_reltol,
                   optim_reltol=optim_reltol, optim_maxit=optim_maxit,
@@ -103,7 +106,9 @@ fit$data$curePreds = curePreds
 
 fit$settings = settings
 
-class(fit) = c("kmcure","list")
+fit$call = call
+
+class(fit) = "kmcure"
 
 return(fit)
 }

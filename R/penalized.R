@@ -24,8 +24,10 @@
 #'
 #' # penalFit = penalized(time, event, survPreds, curePreds, R = 100)
 #'
-#' @import RobMixReg
-#' @importFrom RobMixReg lars.lsa
+#' # names(penalFit)
+#'
+#' # penalFit$isNonZeroCoef$lassoBIC
+#'
 #' @export
 penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = FALSE){
 

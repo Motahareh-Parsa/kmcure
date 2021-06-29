@@ -41,4 +41,8 @@ names(curePreds)
 
 # penalFit = penalized(time, event, survPreds, curePreds, R = 100)
 
+# names(penalFit)
+
+# penalFit$isNonZeroCoef$lassoBIC
+
 }
