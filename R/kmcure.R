@@ -190,13 +190,13 @@ print.summary.kmcure <- function(result){
   cat("\nCall:\n")
   print(result$call)
 
-  cat("\nCure and Censor percentages:\n")
+  cat("\nPercentage of censored and cured observations:\n")
   if(result$Rboot==0){
-    cat("- Cure percentage is ", result$cure, "\n", sep = "")
-    cat("- Censor percentage is ", result$cens, "\n", sep = "")
+    cat("- Censored percentage is ", result$cens, "\n", sep = "")
+    cat("- Cured percentage is ", result$cure, "\n", sep = "")
   }else{
-    cat("- Cure percentage is ", result$cure, " and its 95% Bootstrap CI is (", result$cure95ci[1], ", ", result$cure95ci[2], ")\n", sep = "")
-    cat("- Censor percentage is ", result$cens, " and its 95% Bootstrap CI is (", result$cens95ci[1], ", ", result$cens95ci[2], ")\n", sep = "")
+    cat("- Censored percentage is ", result$cens, " and its 95% Bootstrap CI is (", result$cens95ci[1], ", ", result$cens95ci[2], ")\n", sep = "")
+    cat("- Cured percentage is ", result$cure, " and its 95% Bootstrap CI is (", result$cure95ci[1], ", ", result$cure95ci[2], ")\n", sep = "")
   }
 
   cat("\nCure probability model:\n")

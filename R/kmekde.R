@@ -100,7 +100,10 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     logY = log(Y) # to be used with exactly this name
     n = length(logY) # to be used with exactly this name
 
-    if(!silent) cat("The program run is started at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "Please be patient...\n")
+    if(!silent){
+      cat("The kmcure fitting procedure is started at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
+      cat("Please be patient...\n")
+    }
 
     ## calculate cure fraction and censoring percent just to be used in report
     sfit = survival::survfit(survival::Surv(Y, delta)~1)
@@ -404,7 +407,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     AIC=vecAIC[indexMaxLL]
     BIC=vecBIC[indexMaxLL]
 
-    if(!silent) cat("The program run is successfully finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
+    if(!silent) cat("The kmcure fitting procedure is successfully finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
     return( list(exitcode = 0, call=call, coef=coef, method = methodName, timeD=timeD, AIC=AIC, BIC=BIC, loglik=loglik, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD))
   }, warning = function(w) {
     if(!silent){
