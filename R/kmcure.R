@@ -45,15 +45,6 @@
 #'
 #' @export
 kmcure <- function(time, event, survPreds, curePreds=NULL,
-                           multiOptim_maxit = 10, multiOptim_reltol = 0.001,
-                           optim_reltol = 1e-8, optim_maxit = 500,
-                           scale = FALSE, silent = FALSE, conditional = FALSE,
-                           optim_method = "Nelder-Mead", optim_init = NULL){
-  UseMethod("kmcure")
-}
-
-#' @export
-kmcure.default <- function(time, event, survPreds, curePreds=NULL,
                    multiOptim_maxit = 10, multiOptim_reltol = 0.001,
                    optim_reltol = 1e-8, optim_maxit = 500,
                    scale = FALSE, silent = FALSE, conditional = FALSE,
