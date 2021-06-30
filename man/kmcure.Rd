@@ -68,14 +68,10 @@ names(survPreds)
 curePreds = hfp[, c(3:15)]
 names(curePreds)
 
-fit = kmcure (time, event, survPreds, curePreds, multiOptim_maxit = 10)
+fit = kmcure (time, event, survPreds, curePreds)
 
-names(fit)
+# bootstrap("fit") # Do bootstrap if you need to estimate SE and p-values
 
-fit$exitcode==TRUE # if TRUE the fit completed without any warning/error
-fit$loglik # the loglik of the fitted model
-fit$timeD # the calculation time
-fit$coef # the estimated coefficients
-
+summary(fit)
 
 }

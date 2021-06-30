@@ -1,6 +1,6 @@
-#' Do bootstrap replication for a "kmcure" fitted object
+#' Do bootstrap replications for a "kmcure" fitted object
 #'
-#' After estimating model parameters using the "kmcure" function we can use the "bootstrap" function to calculate standard errors of the model parameters which are needed for calculating p-values
+#' After estimating model parameters using the "kmcure" function we can use the "bootstrap" function to make it possible to estimate standard errors and p-values of the model parameters.
 #'
 #' @param fitObjName is the name of a kmcure fit object
 #' @param R is the number of Bootstrap repeats to be runs
@@ -19,7 +19,7 @@
 #' # we can use the name of the fitted "kmcure" object to do its bootstrap replications:
 #' bootstrap("fit")
 #' @export
-bootstrap <- function(fitObjName = "fit",
+bootstrap <- function(fitObjName,
                       R = 50,
                       useFitEstAsBootInit = TRUE,
                       considerPreviousBoots = TRUE,
@@ -29,8 +29,9 @@ bootstrap <- function(fitObjName = "fit",
                       optim_reltol = NULL,
                       optim_maxit = NULL){
 
-  if(class(fitObjName)!="character") stop('input fitObjName is Not the "name" of a kmcure fit object: It must be a string or character object!')
-  if(class(eval(str2lang(fitObjName)))!="kmcure") stop('input fitObjName is Not the name of a valid "kmcure" fit object:  It must refer to a "kmcure" object!')
+  if(class(fitObjName)!="character") stop('The fitObjName argument is Not the "name" of a kmcure fit object: It must be a string or character object!')
+  if(exists(fitObjName)==FALSE) stop('An object with the specified name of fitObjName does Not exist in the R environment! Please, first of all, check its spelling. It must be the name of a valid kmcure object. Please see "help(bootstrap)" for more information.')
+  if(class(eval(str2lang(fitObjName)))!="kmcure") stop('The fitObjName argument is Not the name of a valid "kmcure" fit object:  It must refer to a "kmcure" object!')
 
 
   fitObj = eval(str2lang(fitObjName))

@@ -33,15 +33,11 @@
 #' curePreds = hfp[, c(3:15)]
 #' names(curePreds)
 #'
-#' fit = kmcure (time, event, survPreds, curePreds, multiOptim_maxit = 10)
+#' fit = kmcure (time, event, survPreds, curePreds)
 #'
-#' names(fit)
+#' # bootstrap("fit") # Do bootstrap if you need to estimate SE and p-values
 #'
-#' fit$exitcode==TRUE # if TRUE the fit completed without any warning/error
-#' fit$loglik # the loglik of the fitted model
-#' fit$timeD # the calculation time
-#' fit$coef # the estimated coefficients
-#'
+#' summary(fit)
 #'
 #' @export
 kmcure <- function(time, event, survPreds, curePreds=NULL,
@@ -158,6 +154,16 @@ summary.kmcure <- function(fit){
   }
 
   ## add also interesting info to the result
+  result$cure = round(100*fit$pcure, 2)
+  result$cens = round(100*fit$pcens, 2)
+  result$cure95ci = rep(NA,2)
+  result$cens95ci = rep(NA,2)
+  if(repeats>=30){
+    result$cure95ci[1] = round(100*quantile(fit$boot$pcure,0.025), 2)
+    result$cure95ci[2] = round(100*quantile(fit$boot$pcure,0.975), 2)
+    result$cens95ci[1] = round(100*quantile(fit$boot$pcens,0.025), 2)
+    result$cens95ci[2] = round(100*quantile(fit$boot$pcens,0.975), 2)
+  }
   result$call = fit$call
   result$Rboot = repeats
   result$loglik = fit$loglik
@@ -183,17 +189,33 @@ summary.kmcure <- function(fit){
 print.summary.kmcure <- function(result){
   cat("\nCall:\n")
   print(result$call)
-  cat("\nCure probability model:\n")
 
+  cat("\nCure and Censor percentages:\n")
+  if(result$Rboot==0){
+    cat("- Cure percentage is ", result$cure, "\n", sep = "")
+    cat("- Censor percentage is ", result$cens, "\n", sep = "")
+  }else{
+    cat("- Cure percentage is ", result$cure, " and its 95% Bootstrap CI is (", result$cure95ci[1], ", ", result$cure95ci[2], ")\n", sep = "")
+    cat("- Censor percentage is ", result$cens, " and its 95% Bootstrap CI is (", result$cens95ci[1], ", ", result$cens95ci[2], ")\n", sep = "")
+  }
+
+  cat("\nCure probability model:\n")
   print(result$gammaPart)
+
   cat("\nFailure time distribution model:\n")
   print(result$betaPart)
+
   cat("\nThe log-likelihood is",result$loglik,"and the AIC is", result$AIC, "and the BIC is", result$BIC, "\n")
 
-  if(result$Rboot<30){
+  if(result$Rboot==0){
+    cat("\nThere are no bootstrap replications to calculate SE and pvalue.\n")
+    cat('Please employ the kmcure "bootstrap" function to produce replications.\n')
+  }
+  if(result$Rboot>0 & result$Rboot<30){
     cat("\nThere is", result$Rboot, "bootstrap replications which is not enough to calculate SE and pvalue.\n")
     cat('Please increase the number of bootstrap replications using the bootstrap function.\n')
-  }else{
+  }
+  if(result$Rboot>30){
     cat("\nCalculation of SE and pvalues are based on", result$Rboot, "bootstrap replications.\n")
     cat('Nnumber of bootstrap replications can be increased using the bootstrap function.\n')
   }

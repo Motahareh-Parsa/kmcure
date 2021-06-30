@@ -2,10 +2,10 @@
 % Please edit documentation in R/bootstrap.R
 \name{bootstrap}
 \alias{bootstrap}
-\title{Do bootstrap replication for a "kmcure" fitted object}
+\title{Do bootstrap replications for a "kmcure" fitted object}
 \usage{
 bootstrap(
-  fitObjName = "fit",
+  fitObjName,
   R = 50,
   useFitEstAsBootInit = TRUE,
   considerPreviousBoots = TRUE,
@@ -39,7 +39,7 @@ bootstrap(
 No direct value is returned instead add a boot section in the inputted kmcure fit object
 }
 \description{
-After estimating model parameters using the "kmcure" function we can use the "bootstrap" function to calculate standard errors of the model parameters which are needed for calculating p-values
+After estimating model parameters using the "kmcure" function we can use the "bootstrap" function to make it possible to estimate standard errors and p-values of the model parameters.
 }
 \examples{
 # after fitting a model using the "kmcure" function (see ?kmcure for more information),
