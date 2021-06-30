@@ -45,6 +45,15 @@
 #'
 #' @export
 kmcure <- function(time, event, survPreds, curePreds=NULL,
+                           multiOptim_maxit = 10, multiOptim_reltol = 0.001,
+                           optim_reltol = 1e-8, optim_maxit = 500,
+                           scale = FALSE, silent = FALSE, conditional = FALSE,
+                           optim_method = "Nelder-Mead", optim_init = NULL){
+  UseMethod("kmcure")
+}
+
+#' @export
+kmcure.default <- function(time, event, survPreds, curePreds=NULL,
                    multiOptim_maxit = 10, multiOptim_reltol = 0.001,
                    optim_reltol = 1e-8, optim_maxit = 500,
                    scale = FALSE, silent = FALSE, conditional = FALSE,
@@ -112,3 +121,17 @@ class(fit) = "kmcure"
 
 return(fit)
 }
+
+#' @export
+print.kmcure <- function(fit){
+  cat("This is a kmcure fit object that has resulted from the following call:\n\n")
+  call = fit$call
+  print(call)
+  if(is.null(fit$boot)){
+    cat("\nThe Bootstrap function has not applied to this kmcure fit object yet. \n")
+  }else{
+    cat("\nThe Bootstrap function with",fit$boot$repeats ,"replications has applied to this kmcure fit object. \n")
+  }
+}
+
+
