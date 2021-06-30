@@ -42,7 +42,27 @@ No direct value is returned instead add a boot section in the inputted kmcure fi
 After estimating model parameters using the "kmcure" function we can use the "bootstrap" function to make it possible to estimate standard errors and p-values of the model parameters.
 }
 \examples{
-# after fitting a model using the "kmcure" function (see ?kmcure for more information),
-# we can use the name of the fitted "kmcure" object to do its bootstrap replications:
-bootstrap("fit")
+\dontrun{
+
+library(kmcure)
+
+data(hfp)
+
+time = hfp$Time
+
+event = hfp$Event
+
+survPreds = hfp[, c(3:15)]
+names(survPreds)
+
+curePreds = hfp[, c(3:15)]
+names(curePreds)
+
+fit = kmcure (time, event, survPreds, curePreds) # Fit AFT cure model to data
+
+bootstrap("fit") # Do bootstrap by providing the name of the fitted kmcure object
+
+summary(fit)
+
+}
 }

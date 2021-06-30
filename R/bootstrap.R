@@ -15,9 +15,29 @@
 #' @return No direct value is returned instead add a boot section in the inputted kmcure fit object
 #'
 #' @examples
-#' # after fitting a model using the "kmcure" function (see ?kmcure for more information),
-#' # we can use the name of the fitted "kmcure" object to do its bootstrap replications:
-#' bootstrap("fit")
+#' \dontrun{
+#'
+#' library(kmcure)
+#'
+#' data(hfp)
+#'
+#' time = hfp$Time
+#'
+#' event = hfp$Event
+#'
+#' survPreds = hfp[, c(3:15)]
+#' names(survPreds)
+#'
+#' curePreds = hfp[, c(3:15)]
+#' names(curePreds)
+#'
+#' fit = kmcure (time, event, survPreds, curePreds) # Fit AFT cure model to data
+#'
+#' bootstrap("fit") # Do bootstrap by providing the name of the fitted kmcure object
+#'
+#' summary(fit)
+#'
+#' }
 #' @export
 bootstrap <- function(fitObjName,
                       R = 50,
