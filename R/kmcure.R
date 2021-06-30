@@ -125,4 +125,77 @@ print.kmcure <- function(fit){
   }
 }
 
+#' @export
+summary.kmcure <- function(fit){
+  result = list()
 
+  ## define p-value function
+  pvalue <- function(est,se) {
+    names = rownames(est)
+    est = as.numeric(est)
+    se = as.numeric(se)
+    twald = est/se
+    pwald = 2*pnorm(abs(twald),lower.tail=F)
+    output = cbind(est,se,twald,pwald)
+    colnames(output)=c("Estimate","Std. Error","t value","Pr(>|t|)")
+    rownames(output) = names
+    return(output)
+  }
+
+  ## calculate output (coef and p-value)
+  repeats = fit$boot$repeats
+  if(is.null(repeats)) repeats = 0
+  if(repeats < 30){
+    output = fit$coef
+    colnames(output) = "Estimate"
+    result$output = output
+  }else{
+    est = fit$coef
+    covmat = cov(t(fit$boot$coef))
+    se = diag(covmat)
+    output = pvalue(est, se)
+    result$output = output
+  }
+
+  ## add also interesting info to the result
+  result$call = fit$call
+  result$Rboot = repeats
+  result$loglik = fit$loglik
+  result$AIC = fit$AIC
+  result$BIC = fit$BIC
+
+  ## split coefficients to gamma and beta parts based on the coef rownames
+  names = rownames(result$output)
+  gammaLength = sum(grepl("Gamma", names))
+  gammaPart = as.matrix(result$output[1:gammaLength,])
+  betaPart = as.matrix(result$output[(gammaLength+1):nrow(result$output),])
+  if(ncol(gammaPart)==1) colnames(gammaPart) = "Estimate"
+  if(ncol(betaPart)==1) colnames(betaPart) = "Estimate"
+  result$gammaPart = gammaPart
+  result$betaPart = betaPart
+
+  ## assign an appropriate class name to the summary of kmcure object
+  class(result) <- 'summary.kmcure'
+  return(result)
+}
+
+#' @export
+print.summary.kmcure <- function(result){
+  cat("\nCall:\n")
+  print(result$call)
+  cat("\nCure probability model:\n")
+
+  print(result$gammaPart)
+  cat("\nFailure time distribution model:\n")
+  print(result$betaPart)
+  cat("\nThe log-likelihood is",result$loglik,"and the AIC is", result$AIC, "and the BIC is", result$BIC, "\n")
+
+  if(result$Rboot<30){
+    cat("\nThere is", result$Rboot, "bootstrap replications which is not enough to calculate SE and pvalue.\n")
+    cat('Please increase the number of bootstrap replications using the bootstrap function.\n')
+  }else{
+    cat("\nCalculation of SE and pvalues are based on", result$Rboot, "bootstrap replications.\n")
+    cat('Nnumber of bootstrap replications can be increased using the bootstrap function.\n')
+  }
+
+}
