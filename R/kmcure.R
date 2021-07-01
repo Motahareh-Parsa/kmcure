@@ -111,13 +111,13 @@ return(fit)
 
 #' @export
 print.kmcure <- function(fit){
-  cat("This is a kmcure fit object that has resulted from the following call:\n\n")
+  cat("This is a kmcure fit object that is resulted from the following call:\n\n")
   call = fit$call
   print(call)
   if(is.null(fit$boot)){
-    cat("\nThe Bootstrap function has not applied to this kmcure fit object yet. \n")
+    cat("\nThe Bootstrap function is Not applied to this kmcure fit object yet. \n")
   }else{
-    cat("\nThe Bootstrap function with",fit$boot$repeats ,"replications has applied to this kmcure fit object. \n")
+    cat("\nThe Bootstrap function with",fit$boot$repeats ,"replications is applied to this kmcure fit object. \n")
   }
 }
 
@@ -174,7 +174,9 @@ summary.kmcure <- function(fit){
   names = rownames(result$output)
   gammaLength = sum(grepl("Gamma", names))
   gammaPart = as.matrix(result$output[1:gammaLength,])
+  rownames(gammaPart) = names[1:gammaLength]
   betaPart = as.matrix(result$output[(gammaLength+1):nrow(result$output),])
+  rownames(betaPart) = names[(gammaLength+1):nrow(result$output)]
   if(ncol(gammaPart)==1) colnames(gammaPart) = "Estimate"
   if(ncol(betaPart)==1) colnames(betaPart) = "Estimate"
   result$gammaPart = gammaPart
@@ -190,13 +192,13 @@ print.summary.kmcure <- function(result){
   cat("\nCall:\n")
   print(result$call)
 
-  cat("\nPercentage of censored and cured observations:\n")
+  cat("\nDescription of data:\n")
   if(result$Rboot==0){
     cat("- Censored percentage is ", result$cens, "\n", sep = "")
-    cat("- Cured percentage is ", result$cure, "\n", sep = "")
+    cat("- Kaplan-Meier estimation of Cured percentage is ", result$cure, "\n", sep = "")
   }else{
     cat("- Censored percentage is ", result$cens, " and its 95% Bootstrap CI is (", result$cens95ci[1], ", ", result$cens95ci[2], ")\n", sep = "")
-    cat("- Cured percentage is ", result$cure, " and its 95% Bootstrap CI is (", result$cure95ci[1], ", ", result$cure95ci[2], ")\n", sep = "")
+    cat("- Kaplan-Meier estimation of Cured percentage is ", result$cure, " and its 95% Bootstrap CI is (", result$cure95ci[1], ", ", result$cure95ci[2], ")\n", sep = "")
   }
 
   cat("\nCure probability model:\n")

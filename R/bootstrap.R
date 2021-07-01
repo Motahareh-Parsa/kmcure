@@ -2,7 +2,7 @@
 #'
 #' After estimating model parameters using the "kmcure" function we can use the "bootstrap" function to make it possible to estimate standard errors and p-values of the model parameters.
 #'
-#' @param fitObjName is the name of a kmcure fit object
+#' @param fitObjName is the name of a kmcure fit object. The name must be provided as a string or character object.
 #' @param R is the number of Bootstrap repeats to be runs
 #' @param useFitEstAsBootInit a Boolean value which if set to TRUE it use the Fit Estimated coefficients as Initial values in Bootstrap Estimations
 #' @param considerPreviousBoots a Boolean value which if set to FALSE it ignore possible previously estimated bootstrap replications

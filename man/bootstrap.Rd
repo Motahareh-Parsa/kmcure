@@ -17,7 +17,7 @@ bootstrap(
 )
 }
 \arguments{
-\item{fitObjName}{is the name of a kmcure fit object}
+\item{fitObjName}{is the name of a kmcure fit object. The name must be provided as a string or character object.}
 
 \item{R}{is the number of Bootstrap repeats to be runs}
 
