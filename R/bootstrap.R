@@ -118,6 +118,8 @@ bootstrap <- function(fitObjName,
       fitObj$boot$coef = cbind(fitObj$boot$coef, rfit$coef)
       fitObj$boot$pcure = c(fitObj$boot$pcure, rfit$pcure)
       fitObj$boot$pcens = c(fitObj$boot$pcens, rfit$pcens)
+      fitObj$boot$pcure_modelMean = c(fitObj$boot$pcure_modelMean, rfit$pcure_modelMean)
+
       rfit$data = NULL
       fitObj$boot$fitsList[[r]] = rfit
       fitObj$boot$settings = list(useFitEstAsBootInit=useFitEstAsBootInit,

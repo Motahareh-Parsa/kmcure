@@ -106,6 +106,10 @@ fit$call = call
 
 class(fit) = "kmcure"
 
+pUncureModel = predict(fit)
+
+fit$pcure_modelMean = mean(1 - pUncureModel)
+
 return(fit)
 }
 
@@ -156,13 +160,17 @@ summary.kmcure <- function(fit){
   ## add also interesting info to the result
   result$cure = round(100*fit$pcure, 2)
   result$cens = round(100*fit$pcens, 2)
+  result$cure_modelMean = round(100*fit$pcure_modelMean, 2)
   result$cure95ci = rep(NA,2)
   result$cens95ci = rep(NA,2)
+  result$cure_modelMean95ci = rep(NA,2)
   if(repeats>=30){
     result$cure95ci[1] = round(100*quantile(fit$boot$pcure,0.025), 2)
     result$cure95ci[2] = round(100*quantile(fit$boot$pcure,0.975), 2)
     result$cens95ci[1] = round(100*quantile(fit$boot$pcens,0.025), 2)
     result$cens95ci[2] = round(100*quantile(fit$boot$pcens,0.975), 2)
+    result$cure_modelMean95ci[1] = round(100*quantile(fit$boot$pcure_modelMean,0.025), 2)
+    result$cure_modelMean95ci[2] = round(100*quantile(fit$boot$pcure_modelMean,0.975), 2)
   }
   result$call = fit$call
   result$Rboot = repeats
@@ -196,9 +204,11 @@ print.summary.kmcure <- function(result){
   if(result$Rboot==0){
     cat("- Censored percentage is ", result$cens, "\n", sep = "")
     cat("- Kaplan-Meier estimation of Cured percentage is ", result$cure, "\n", sep = "")
+    cat('- The "kmcure" estimation of Cured percentage is ', result$cure_modelMean, "\n", sep = "")
   }else{
     cat("- Censored percentage is ", result$cens, " and its 95% Bootstrap CI is (", result$cens95ci[1], ", ", result$cens95ci[2], ")\n", sep = "")
     cat("- Kaplan-Meier estimation of Cured percentage is ", result$cure, " and its 95% Bootstrap CI is (", result$cure95ci[1], ", ", result$cure95ci[2], ")\n", sep = "")
+    cat('- The "kmcure" estimation of Cured percentage is ', result$cure_modelMean, " and its 95% Bootstrap CI is (", result$cure_modelMean95ci[1], ", ", result$cure_modelMean95ci[2], ")\n", sep = "")
   }
 
   cat("\nCure probability model:\n")
@@ -223,3 +233,45 @@ print.summary.kmcure <- function(result){
   }
 
 }
+
+
+#' Predict probability of being an Un-cure observation
+#'
+#' @param fit a kmcure fit object
+#'
+#' @param newdata an optional matrix with same columns of the model curePreds
+#'
+#' @export
+predict.kmcure <- function(fit, newdata = NULL){
+  if(is.null(newdata)){
+    curePreds = fit$data$curePreds
+  }else{
+    if(is.null(fit$data$curePreds)){
+      curePreds = NULL
+      warning("newdata is ignored because the model does not have any curePreds")
+    }else{
+      newdata = as.matrix(newdata)
+      if(ncol(newdata==1)) newdata = t(newdata) # account for a numeric newdata
+      curePreds = as.matrix(fit$data$curePreds)
+      if(ncol(newdata)==ncol(curePreds)){
+        curePreds = newdata
+      }else{
+        curePreds = fit$data$curePreds
+        warning("newdata is ignored because its number of columns is different from the model curePreds")
+      }
+    }
+  }
+  names = rownames(fit$coef)
+  gammaLength = sum(grepl("Gamma", names))
+  gammaCoef = as.matrix(fit$coef[1:gammaLength,])
+  rownames(gammaCoef) = names[1:gammaLength]
+  if(is.null(curePreds)){
+    Z = as.matrix(rep(1, length(event)))
+  }else{
+    if(rownames(gammaCoef)[1]=="Gamma(Intercept)") Z = as.matrix(cbind(1,curePreds)) else Z = as.matrix(curePreds)
+  }
+  Zgamma = Z %*% gammaCoef
+  pUncureModel = exp(Zgamma)/(1+exp(Zgamma))
+  return(pUncureModel)
+}
+
