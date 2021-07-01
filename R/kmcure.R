@@ -53,6 +53,27 @@ kmcure <- function(time, event, survPreds, curePreds=NULL,
                   scale=scale, silent=silent, conditional = conditional,
                   optim_method=optim_method, optim_init=optim_init)
 
+  ## omit rows that have some NA values
+  if (is.null(curePreds)){
+    data = cbind(time, event, survPreds)
+  } else{
+    data = cbind(time, event, survPreds, curePreds)
+  }
+  data = na.omit(data)
+  time = data[, 1]
+  event = data[, 2]
+  p = ncol(as.matrix(survPreds))
+  survPredsNames = colnames(survPreds)
+  survPreds = data[, 3:(3+p-1)]
+  colnames(survPreds) = survPredsNames
+  if (!is.null(curePreds)){
+    q = ncol(as.matrix(curePreds))
+    curePredsNames = colnames(curePreds)
+    curePreds = data[, (3+p):(ncol(data))]
+    colnames(curePreds) = curePredsNames
+  }
+
+  ## prepare a scaled version of data to be used if required
   X = scale(survPreds, center = FALSE, scale = TRUE)
   scaleX = attr(X, "scaled:scale")
 
