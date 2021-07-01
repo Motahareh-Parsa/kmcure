@@ -250,14 +250,16 @@ predict.kmcure <- function(fit, newdata = NULL){
       curePreds = NULL
       warning("newdata is ignored because the model does not have any curePreds")
     }else{
-      newdata = as.matrix(newdata)
-      if(ncol(newdata==1)) newdata = t(newdata) # account for a numeric newdata
       curePreds = as.matrix(fit$data$curePreds)
+      if( is.null(dim(newdata)) & ncol(curePreds) > 1 ){
+        newdata = matrix(newdata, nrow = 1) # account for a one-row numeric newdata
+      } else{
+        newdata = as.matrix(newdata)
+      }
       if(ncol(newdata)==ncol(curePreds)){
         curePreds = newdata
       }else{
-        curePreds = fit$data$curePreds
-        warning("newdata is ignored because its number of columns is different from the model curePreds")
+        stop("The number of newdata's columns is different from the model curePreds")
       }
     }
   }
