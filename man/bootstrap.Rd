@@ -6,8 +6,8 @@
 \usage{
 bootstrap(
   fitObjName,
-  R = 50,
-  useFitEstAsBootInit = TRUE,
+  R = 100,
+  useFitEstAsBootInit = FALSE,
   considerPreviousBoots = TRUE,
   silent = FALSE,
   multiOptim_maxit = NULL,

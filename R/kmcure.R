@@ -41,7 +41,7 @@
 #'
 #' @export
 kmcure <- function(time, event, survPreds, curePreds=NULL,
-                   multiOptim_maxit = 10, multiOptim_reltol = 0.001,
+                   multiOptim_maxit = 30, multiOptim_reltol = 0.001,
                    optim_reltol = 1e-8, optim_maxit = 500,
                    scale = FALSE, silent = FALSE, conditional = FALSE,
                    optim_method = "Nelder-Mead", optim_init = NULL){
@@ -225,11 +225,11 @@ print.summary.kmcure <- function(result){
   if(result$Rboot==0){
     cat("- Censored percentage is ", result$cens, "\n", sep = "")
     cat("- Kaplan-Meier estimation of Cured percentage is ", result$cure, "\n", sep = "")
-    cat('- The "kmcure" estimation of Cured percentage is ', result$cure_modelMean, "\n", sep = "")
+    cat('- The model estimation of Cured percentage is ', result$cure_modelMean, "\n", sep = "")
   }else{
     cat("- Censored percentage is ", result$cens, " and its 95% Bootstrap CI is (", result$cens95ci[1], ", ", result$cens95ci[2], ")\n", sep = "")
     cat("- Kaplan-Meier estimation of Cured percentage is ", result$cure, " and its 95% Bootstrap CI is (", result$cure95ci[1], ", ", result$cure95ci[2], ")\n", sep = "")
-    cat('- The "kmcure" estimation of Cured percentage is ', result$cure_modelMean, " and its 95% Bootstrap CI is (", result$cure_modelMean95ci[1], ", ", result$cure_modelMean95ci[2], ")\n", sep = "")
+    cat('- The model estimation of Cured percentage is ', result$cure_modelMean, " and its 95% Bootstrap CI is (", result$cure_modelMean95ci[1], ", ", result$cure_modelMean95ci[2], ")\n", sep = "")
   }
 
   cat("\nCure probability model:\n")

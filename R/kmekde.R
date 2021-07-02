@@ -407,7 +407,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     AIC=vecAIC[indexMaxLL]
     BIC=vecBIC[indexMaxLL]
 
-    if(!silent) cat("The kmcure fitting procedure is successfully finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
+    if(!silent) cat("The kmcure fitting procedure is finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
     return( list(exitcode = 0, call=call, coef=coef, method = methodName, timeD=timeD, AIC=AIC, BIC=BIC, loglik=loglik, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD))
   }, warning = function(w) {
     if(!silent){

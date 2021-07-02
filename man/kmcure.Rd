@@ -9,7 +9,7 @@ kmcure(
   event,
   survPreds,
   curePreds = NULL,
-  multiOptim_maxit = 10,
+  multiOptim_maxit = 30,
   multiOptim_reltol = 0.001,
   optim_reltol = 1e-08,
   optim_maxit = 500,
