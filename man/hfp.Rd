@@ -5,7 +5,7 @@
 \alias{hfp}
 \title{Data of Heart Failure Patients}
 \format{
-A data frame with 299 rows and 13 variables:
+A data frame with 299 rows and 20 variables:
 \describe{
 \item{Time}{Time to death duo to Cardiovascular Heart Disease (CHD) per day}
 \item{Event}{Event status which is coded as 1 for event and 0 for censoring}
@@ -36,7 +36,7 @@ A data frame with 299 rows and 13 variables:
 hfp
 }
 \description{
-A dataset containing the survival time, event/censoring status, and 11 explanatory variables of heart failure patients who were admitted to the Institute of Cardiology and Allied hospital Faisalabad-Pakistan during April-December 2015.
+A dataset containing the survival time, event/censoring status, and 11 novel explanatory variables of heart failure patients who were admitted to the Institute of Cardiology and Allied hospital Faisalabad-Pakistan during April-December 2015.
 }
 \details{
 This dataset is adapted from \href{https://doi.org/10.1371/journal.pone.0181001}{an open access article (DOI: 10.1371/journal.pone.0181001)} with Creative Commons Attribution License \url{https://creativecommons.org/licenses/by/4.0/} which was published in the PLOS ONE journal in 2017.
