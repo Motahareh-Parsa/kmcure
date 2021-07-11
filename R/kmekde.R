@@ -128,8 +128,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     ### define functions
 
     ## -----------------KERNEL BANDWIDTH ------------------------------------------------------------
-    sigma = sqrt(var(logY[delta==1]-as.matrix(X[delta==1,])%*%as.matrix(beta.ini)))
-    sigma = as.numeric(sigma)
+    sigma = sd(lm.fit$residuals)
     optimband = (8*sqrt(2)/3)^(1/5)*sigma*n^(-1/5)
     h = bandcoef*optimband # to be used with exactly this name
 
