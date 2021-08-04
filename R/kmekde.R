@@ -83,11 +83,15 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     delta = as.matrix(event) # to be used with exactly this name
     Xnames = colnames(survPreds)
     X = as.matrix(survPreds) # to be used with exactly this name
-    if(is.null(Xnames)) Xnames = paste0("X", 1:ncol(X))
+    Xnames0 = paste0("X", 1:ncol(X))
+    if(is.null(Xnames)) Xnames0
+    Xnames[Xnames==""] = Xnames0[Xnames==""]
     if(!is.null(curePreds)){
       Znames = colnames(curePreds)
       Z = as.matrix(curePreds) # to be used with exactly this name
-      if(is.null(Znames)) Znames = paste0("Z", 1:ncol(Z))
+      Znames0 = paste0("Z", 1:ncol(Z))
+      if(is.null(Znames)) Znames0
+      Znames[Znames==""] = Znames0[Znames==""]
       oneZ = cbind(1,Z) # to be used with exactly this name
     } else{
       Znames = ""
@@ -115,7 +119,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     ### Initial values
 
     ## Initial Values for Logistic model (Uncure Prob.)
-    logit.fit = glm( delta ~ oneZ - 1 , family = binomial(link="logit"), control = list(maxit = 100)) # the number of maxit increased from the default value of 25 to 100 to avoid possible non-convergence warnings
+    logit.fit =  suppressWarnings(glm( delta ~ oneZ - 1 , family = binomial(link="logit"), control = list(maxit = 100))) # the number of maxit increased from the default value of 25 to 100 to avoid possible non-convergence warnings
     b.ini = coef(logit.fit)
 
     ## Initial Values for AFT Model of Uncured Individuals
@@ -387,7 +391,7 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
 
     coef = thetaUpdate # use the latest estimation of theta that is result of the optimization
     coef = as.matrix(coef)
-    if(all(Znames=="")){
+    if(is.null(curePreds)){
       rownames(coef) = c( "Gamma(Intercept)", paste("Beta(",Xnames,")",sep="") )
     }else{
       rownames(coef) = c( "Gamma(Intercept)", paste("Gamma(",Znames,")",sep=""), paste("Beta(",Xnames,")",sep="") )

@@ -32,78 +32,107 @@
 penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = FALSE){
 
   if(!silent){
-    cat("Calculation of Penalized AFT cure model is started at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
+    cat("Running of the kmcure 'penalized' function is started at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
     cat("Please be patient...\n")
   }
 
+  timeS = Sys.time() # start recording time
+
   ## standardize covariates
   stdSurvPreds = scale(survPreds, center = FALSE, scale = TRUE)
+  scaleSurvPreds = attr(stdSurvPreds, "scaled:scale")
 
   if(is.null(curePreds)){
     stdCurePreds = NULL
+    scaleCurePreds = NULL
   }else{
     stdCurePreds = scale(curePreds, center = FALSE, scale = TRUE)
+    scaleCurePreds = attr(stdCurePreds, "scaled:scale")
   }
 
+  scaleFull = c(1, scaleCurePreds, scaleSurvPreds)
+
   ## Fit KMEKDE model to estimate coef
+  if(!silent) cat("The primary fitting of the model is started at", format(Sys.time(), "%H:%M:%S ..."), "\n")
   fit = kmekde (time, event, stdSurvPreds, stdCurePreds, multiOptim_maxit = 1,
                 conditional = TRUE, silent = TRUE)
-  stdCoef = fit$coef
+  if(!silent) cat("The primary fitting of the model is finished at", format(Sys.time(), "%H:%M:%S ..."), "\n")
+  if(fit$exitcode>=2){
+    stop("An error occurred in using kmekde in the penalized function! The kmekde exitcode is", fit$exitcode)
+  }else{
+    stdCoef = fit$coef
 
-  ## Bootstrap KMEKDE model to estimate covmat
-  BootStdCoef = matrix(nrow=length(stdCoef), ncol = R)
-  n = length(time)
-  r = 1
-  while(r<=R){
-    rsample = sample(1:n, n, replace=TRUE)
-    rtime = time[rsample]
-    revent = event[rsample]
-    rStdSurvPreds = stdSurvPreds[rsample,]
-    if(is.null(curePreds)){
-      rStdCurePreds = NULL
-    }else{
-      rStdCurePreds = stdCurePreds[rsample,]
-    }
-    rfit = kmcure (rtime, revent, rStdSurvPreds, rStdCurePreds,  multiOptim_maxit = 1,
-                   conditional = FALSE, optim_init = stdCoef, silent = TRUE)
-    if(rfit$exitcode==0){
-      BootStdCoef[, r] = rfit$coef
-      r = r + 1
-    }
-  } # end while loop of r
+    ## Bootstrap KMEKDE model to estimate covmat
+    if(!silent) cat("The Bootstrap fittings of the model is started at", format(Sys.time(), "%H:%M:%S ..."), "\n")
+    BootStdCoef = matrix(nrow=length(stdCoef), ncol = R)
+    n = length(time)
+    r = 1
+    while(r<=R){
+      if(!silent) if(r%%10==0) cat("Bootstrap #", r, "of", R, "is completed...\n")
+      rsample = sample(1:n, n, replace=TRUE)
+      rtime = time[rsample]
+      revent = event[rsample]
+      rStdSurvPreds = stdSurvPreds[rsample,]
+      if(is.null(curePreds)){
+        rStdCurePreds = NULL
+      }else{
+        rStdCurePreds = stdCurePreds[rsample,]
+      }
+      rfit = kmekde (rtime, revent, rStdSurvPreds, rStdCurePreds,  multiOptim_maxit = 1,
+                     conditional = FALSE, optim_init = stdCoef, silent = TRUE)
+      if(rfit$exitcode==0){
+        BootStdCoef[, r] = rfit$coef
+        r = r + 1
+      }
+    } # end while loop of r
 
-  stdCovMat = cov(t(BootStdCoef))
+    stdCovMat = cov(t(BootStdCoef))
 
-  stdCoefPenLassoBIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
-                                                  type = "lasso" , criteria = "BIC"))
-  stdCoefPenLassoAIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
-                                                  type = "lasso" , criteria = "AIC"))
-  stdCoefPenLarBIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
+    stdCoefPenLassoBIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
+                                                    type = "lasso" , criteria = "BIC"))
+    stdCoefPenLassoAIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
+                                                    type = "lasso" , criteria = "AIC"))
+    stdCoefPenLarBIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
                                                   type = "lar" , criteria = "BIC"))
-  stdCoefPenLarAIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
+    stdCoefPenLarAIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
                                                   type = "lar" , criteria = "AIC"))
 
-  nonZeroStdCoefPenLassoBIC = (stdCoefPenLassoBIC != 0)
-  nonZeroStdCoefPenLassoAIC = (stdCoefPenLassoAIC != 0)
-  nonZeroStdCoefPenLarBIC = (stdCoefPenLarBIC != 0)
-  nonZeroStdCoefPenLarAIC = (stdCoefPenLarAIC != 0)
+    nonZeroStdCoefPenLassoBIC = (stdCoefPenLassoBIC != 0)
+    nonZeroStdCoefPenLassoAIC = (stdCoefPenLassoAIC != 0)
+    nonZeroStdCoefPenLarBIC = (stdCoefPenLarBIC != 0)
+    nonZeroStdCoefPenLarAIC = (stdCoefPenLarAIC != 0)
 
-  outlist = list()
+    outlist = list()
 
-  outlist$stdCoefPenalized$lassoBIC = stdCoefPenLassoBIC
-  outlist$stdCoefPenalized$lassoAIC = stdCoefPenLassoAIC
-  outlist$stdCoefPenalized$larBIC = stdCoefPenLarBIC
-  outlist$stdCoefPenalized$larAIC = stdCoefPenLarAIC
+    outlist$isNonZeroCoef$lassoBIC = nonZeroStdCoefPenLassoBIC
+    outlist$isNonZeroCoef$lassoAIC = nonZeroStdCoefPenLassoAIC
+    outlist$isNonZeroCoef$larBIC = nonZeroStdCoefPenLarBIC
+    outlist$isNonZeroCoef$larAIC = nonZeroStdCoefPenLarAIC
 
-  outlist$isNonZeroCoef$lassoBIC = nonZeroStdCoefPenLassoBIC
-  outlist$isNonZeroCoef$lassoAIC = nonZeroStdCoefPenLassoAIC
-  outlist$isNonZeroCoef$larBIC = nonZeroStdCoefPenLarBIC
-  outlist$isNonZeroCoef$larAIC = nonZeroStdCoefPenLarAIC
+    outlist$coefPenalized$lassoBIC = stdCoefPenLassoBIC / scaleFull
+    outlist$coefPenalized$lassoAIC = stdCoefPenLassoAIC / scaleFull
+    outlist$coefPenalized$larBIC = stdCoefPenLarBIC / scaleFull
+    outlist$coefPenalized$larAIC = stdCoefPenLarAIC / scaleFull
 
-  if(!silent) cat("Calculation of Penalized AFT cure model is completed at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
+    outlist$stdCoefPenalized$lassoBIC = stdCoefPenLassoBIC
+    outlist$stdCoefPenalized$lassoAIC = stdCoefPenLassoAIC
+    outlist$stdCoefPenalized$larBIC = stdCoefPenLarBIC
+    outlist$stdCoefPenalized$larAIC = stdCoefPenLarAIC
 
-  return(outlist)
-}
+    outlist$stdCovMat = stdCovMat
+
+    outlist$scaleFull = scaleFull
+
+    timeE = Sys.time()
+    timeD = difftime(timeE, timeS, units = "mins")
+    outlist$timeD = timeD
+
+    if(!silent) cat("Running of the kmcure 'penalized' function is finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
+
+    return(outlist)
+
+  } # end else fit$exitcode
+} # end penalized function
 
 
 
