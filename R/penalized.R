@@ -63,6 +63,7 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
     stdCoef = fit$coef
 
     ## Bootstrap KMEKDE model to estimate covmat
+    timeS_boot = Sys.time()
     if(!silent) cat("The Bootstrap fittings of the model is started at", format(Sys.time(), "%H:%M:%S ..."), "\n")
     BootStdCoef = matrix(nrow=length(stdCoef), ncol = R)
     n = length(time)
@@ -85,17 +86,29 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
         r = r + 1
       }
     } # end while loop of r
+    timeE_boot = Sys.time()
 
     stdCovMat = cov(t(BootStdCoef))
 
+    timeS_lsa_lassoBIC = Sys.time()
     stdCoefPenLassoBIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
                                                     type = "lasso" , criteria = "BIC"))
+    timeE_lsa_lassoBIC = Sys.time()
+
+    timeS_lsa_lassoAIC = Sys.time()
     stdCoefPenLassoAIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
                                                     type = "lasso" , criteria = "AIC"))
+    timeE_lsa_lassoAIC = Sys.time()
+
+    timeS_lsa_larBIC = Sys.time()
     stdCoefPenLarBIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
                                                   type = "lar" , criteria = "BIC"))
+    timeE_lsa_larBIC = Sys.time()
+
+    timeS_lsa_larAIC = Sys.time()
     stdCoefPenLarAIC = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n,
                                                   type = "lar" , criteria = "AIC"))
+    timeE_lsa_larAIC = Sys.time()
 
     nonZeroStdCoefPenLassoBIC = (stdCoefPenLassoBIC != 0)
     nonZeroStdCoefPenLassoAIC = (stdCoefPenLassoAIC != 0)
@@ -119,9 +132,17 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
     outlist$stdCoefPenalized$larBIC = stdCoefPenLarBIC
     outlist$stdCoefPenalized$larAIC = stdCoefPenLarAIC
 
-    outlist$stdCovMat = stdCovMat
+    outlist$ordinaryFit$stdCoef = stdCoef
+    outlist$ordinaryFit$stdCovMat = stdCovMat
 
     outlist$scaleFull = scaleFull
+
+    outlist$timeD_fit = fit$timeD
+    outlist$timeD_bootstrap = difftime(timeE_boot, timeS_boot, units = "mins")
+    outlist$timeD_lsa_lassoBIC = difftime(timeE_lsa_lassoBIC, timeS_lsa_lassoBIC, units = "mins")
+    outlist$timeD_lsa_lassoAIC = difftime(timeE_lsa_lassoAIC, timeS_lsa_lassoAIC, units = "mins")
+    outlist$timeD_lsa_larBIC = difftime(timeE_lsa_larBIC, timeS_lsa_larBIC, units = "mins")
+    outlist$timeD_lsa_larAIC = difftime(timeE_lsa_larAIC, timeS_lsa_larAIC, units = "mins")
 
     timeE = Sys.time()
     timeD = difftime(timeE, timeS, units = "mins")
@@ -186,7 +207,7 @@ LSAkmcure = function (coef, covmat, n, type , criteria) {
 
   thetaPen = as.matrix(thetaPen)
   rownames(thetaPen) = rownames(coef)
-  colnames(thetaPen) = "stdCoefPenalized"
+  colnames(thetaPen) = "coef"
 
   return(thetaPen)
 }
