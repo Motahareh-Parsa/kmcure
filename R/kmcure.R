@@ -173,7 +173,7 @@ summary.kmcure <- function(fit){
   }else{
     est = fit$coef
     covmat = cov(t(fit$boot$coef))
-    se = diag(covmat)
+    se = sqrt(diag(covmat))
     output = pvalue(est, se)
     result$output = output
   }
