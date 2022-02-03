@@ -38,6 +38,10 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
 
   timeS = Sys.time() # start recording time
 
+  ## make sure that time and event are not dataframe to prevent indexing problem in bootstrapping
+  time = as.matrix(time)
+  event = as.matrix(event)
+
   ## standardize covariates
   stdSurvPreds = scale(survPreds, center = FALSE, scale = TRUE)
   scaleSurvPreds = attr(stdSurvPreds, "scaled:scale")
@@ -101,7 +105,7 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
     timeE_lsa_lar = Sys.time()
 
     # prepare outlist for the penalized function
-    
+
     outlist = list()
 
     outlist$isNonZeroCoef$lassoBIC = (stdCoefPenLasso$theta.bic != 0)
@@ -117,7 +121,7 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
     outlist$stdCoefPenalized$lassoBIC = stdCoefPenLasso$theta.bic
     outlist$stdCoefPenalized$lassoAIC = stdCoefPenLasso$theta.aic
     outlist$stdCoefPenalized$larBIC = stdCoefPenLar$theta.bic
-    outlist$stdCoefPenalized$larAIC = stdCoefPenLar$theta.aic  
+    outlist$stdCoefPenalized$larAIC = stdCoefPenLar$theta.aic
 
     outlist$ordinaryFit$stdCoef = stdCoef
     outlist$ordinaryFit$stdCovMat = stdCovMat
@@ -148,40 +152,40 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
 
 
 LSAkmcure = function (coef, covmat, n, type) {
-  
+
   type = tolower(type[1])
-  
+
   ## split coefficients to gamma and beta parts based on the coef rownames
   names = rownames(coef)
   bintercept <- grepl("(Intercept)", names[1])
   betaintercept <- any(grepl("(Intercept)", names[-1]))
   bLength = sum(grepl("Gamma", names))
-  
+
   ### split coef and covmat to the b and beta parts and then do shrinkage using the lars.lsa function
-  
+
   # extract b part coef and it's coresponding covariance matrix
   bcoef = coef[1:bLength]
   bcov = covmat[1:bLength, 1:bLength]
   #dim(bcov)
-  
+
   # extract beta part coef and it's coresponding covariance matrix
   betacoef = coef[(1+bLength):length(coef)]
   betacov = covmat[(1+bLength):length(coef), (1+bLength):length(coef)]
-  
+
   bSI <- solve(bcov)
-  
+
   betaSI <- solve(betacov)
-  
+
   # ---- shrinkage b part using RobMixReg::lars.lsa
   bPart_lsa <- RobMixReg::lars.lsa(bSI, bcoef, bintercept, n, type)
-  
+
   bExtract = extract_larslsa(l.fit = bPart_lsa, beta.ols=bcoef, intercept=bintercept, n=n)
-  
+
   # ---- shrinkage beta part using RobMixReg::lars.lsa
   betaPart_lsa <- RobMixReg::lars.lsa(betaSI, betacoef, betaintercept, n, type)
-  
+
   betaExtract = extract_larslsa(l.fit = betaPart_lsa, beta.ols=betacoef, intercept=betaintercept, n=n)
-  
+
   # prepare objects for output
   theta.ols = as.matrix(c(bExtract$beta.ols, betaExtract$beta.ols))
   theta.bic = as.matrix(c(bExtract$beta.bic, betaExtract$beta.bic))
@@ -202,32 +206,32 @@ LSAkmcure = function (coef, covmat, n, type) {
 
 extract_larslsa = function(l.fit, beta.ols, intercept, n){
   t1 <- sort(l.fit$BIC, ind=T)
-  
+
   t2 <- sort(l.fit$AIC, ind=T)
-  
+
   beta <- l.fit$beta
-  
+
   if(intercept) {
-    
+
     beta0 <- l.fit$beta0+beta.ols[1]
-    
+
     beta.bic <- c(beta0[t1$ix[1]],beta[t1$ix[1],])
-    
+
     beta.aic <- c(beta0[t2$ix[1]],beta[t2$ix[1],])
-    
+
   } else {
-    
+
     beta0 <- l.fit$beta0
-    
+
     beta.bic <- beta[t1$ix[1],]
-    
+
     beta.aic <- beta[t2$ix[1],]
-    
+
   }
   bestBIC = l.fit$BIC[t1$ix[1]]
   bestAIC = l.fit$AIC[t2$ix[1]]
-  obj <- list(beta.ols=beta.ols, 
-              beta.bic=beta.bic, beta.aic = beta.aic, 
+  obj <- list(beta.ols=beta.ols,
+              beta.bic=beta.bic, beta.aic = beta.aic,
               bestBIC = bestBIC, bestAIC = bestAIC)
   return(obj)
 }
