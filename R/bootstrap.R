@@ -128,7 +128,7 @@ bootstrap <- function(fitObjName,
                                   optim_reltol=optim_reltol,
                                   optim_maxit=optim_maxit)
       assign(fitObjName, fitObj, envir = .GlobalEnv) # update the original object with fitObjName name
-      if(!silent) cat("The bootstrap replication #", r, "of", R, "is now complate.\n")
+      if(!silent) cat("The bootstrap replication #", r, "of", R, "is now complete.\n")
     } # end if condition on exitcode
   } # end while loop on r
   if(!silent) cat('The run of kmcure "bootstrap" function is finished at', format(Sys.time(), "%H:%M:%S (%Y-%m-%d)..."), "\n")
