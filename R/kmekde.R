@@ -238,7 +238,11 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     conv = NA
 
     theta = c(b.ini,beta.ini)
-    if(length(optim_init)==length(theta)) theta = as.numeric(optim_init)
+    if(length(optim_init)==length(theta)) {
+      theta = as.numeric(optim_init)
+    } else {
+      optim_init = as.numeric(theta)
+    }
 
     if(length(fix_gammacoef)==length(b.ini)){ # then use fix_gammacoef to estimate just the beta part
       methodName = "KMEKDE-fixGamma"
@@ -411,25 +415,25 @@ kmekde <- function(time, event, survPreds, curePreds=NULL,
     BIC=vecBIC[indexMaxLL]
 
     if(!silent) cat("The kmcure fitting procedure is finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
-    return( list(exitcode = 0, call=call, coef=coef, method = methodName, timeD=timeD, AIC=AIC, BIC=BIC, loglik=loglik, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD))
+    return( list(exitcode = 0, call=call, coef=coef, method = methodName, timeD=timeD, AIC=AIC, BIC=BIC, loglik=loglik, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD, optim_init=optim_init))
   }, warning = function(w) {
     if(!silent){
       message("A warning in the KMEKDE fitting is occured!")
       message(w)
     }
-    return( list(exitcode = 1, call=call, coef=coef, method = methodName, timeD=timeD, AIC=AIC, BIC=BIC, loglik=loglik, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD))
+    return( list(exitcode = 1, call=call, coef=coef, method = methodName, timeD=timeD, AIC=AIC, BIC=BIC, loglik=loglik, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=mat_coef, vecLL=vecLL, vecAIC=vecAIC, hessian = estHessian, vecconv=vecconv, vectimeD=vectimeD, optim_init=optim_init))
   }, error = function(e) {
     if(!silent){
       message("An error in the KMEKDE fitting is occured!")
       message(e)
     }
-    return(list(exitcode = 2, call=call, coef=NA, method = methodName, timeD = NA, AIC=NA, BIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA, vectimeD=NA))
+    return(list(exitcode = 2, call=call, coef=NA, method = methodName, timeD = NA, AIC=NA, BIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA, vectimeD=NA, optim_init=optim_init))
   }, finally = {
     if(all(typeof(coef)!="closure")) if(any(is.na(coef))){
       if(!silent) {
         message("NA coefficients in the KMEKDE fitting is occured!")
       }
-      return(list(exitcode = 3, call=call, coef=NA, method = methodName, timeD = NA, AIC=NA, BIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA, vectimeD=NA))
+      return(list(exitcode = 3, call=call, coef=NA, method = methodName, timeD = NA, AIC=NA, BIC=NA, loglik=NA, pcure=pcure, pcens=pcens, optimband=optimband, bandcoef=bandcoef, bandwidth=h, mat_coef=NULL, vecLL=NULL, vecAIC=NULL, hessian = NA, vecconv=NA, vectimeD=NA, optim_init=optim_init))
     }
   }
   ) # end tryCatch
