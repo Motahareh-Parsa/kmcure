@@ -96,12 +96,12 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
 
     # do LSAkmcure for lasso type shrinkage
     timeS_lsa_lasso = Sys.time()
-    stdCoefPenLasso = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n, type = "lasso"))
+    stdCoefPenLasso = LSAkmcure(stdCoef, stdCovMat, n, type = "lasso")
     timeE_lsa_lasso = Sys.time()
 
     # do LSAkmcure for lar type shrinkage
     timeS_lsa_lar = Sys.time()
-    stdCoefPenLar = suppressWarnings(LSAkmcure(stdCoef, stdCovMat, n, type = "lar"))
+    stdCoefPenLar = LSAkmcure(stdCoef, stdCovMat, n, type = "lar")
     timeE_lsa_lar = Sys.time()
 
     # prepare outlist for the penalized function
@@ -138,9 +138,14 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
     outlist$timeD = timeD
 
     outlist$BIC_lasso = stdCoefPenLasso$best.bic
-    outlist$BIC_lar = stdCoefPenLar$best.bic
     outlist$AIC_lasso = stdCoefPenLasso$best.aic
+    outlist$BIC_lar = stdCoefPenLar$best.bic
     outlist$AIC_lar = stdCoefPenLar$best.aic
+
+    outlist$lambda_BIC_lasso = stdCoefPenLasso$lambda.bic
+    outlist$lambda_AIC_lasso = stdCoefPenLasso$lambda.aic
+    outlist$lambda_BIC_lar = stdCoefPenLar$lambda.bic
+    outlist$lambda_AIC_lar = stdCoefPenLar$lambda.aic
 
     if(!silent) cat("Running of the kmcure 'penalized' function is finished at", format(Sys.time(), "%H:%M:%S (%Y-%m-%d)."), "\n")
 
@@ -148,91 +153,3 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
 
   } # end else fit$exitcode
 } # end penalized function
-
-
-
-LSAkmcure = function (coef, covmat, n, type) {
-
-  type = tolower(type[1])
-
-  ## split coefficients to gamma and beta parts based on the coef rownames
-  names = rownames(coef)
-  bintercept <- grepl("(Intercept)", names[1])
-  betaintercept <- any(grepl("(Intercept)", names[-1]))
-  bLength = sum(grepl("Gamma", names))
-
-  ### split coef and covmat to the b and beta parts and then do shrinkage using the lars.lsa function
-
-  # extract b part coef and it's coresponding covariance matrix
-  bcoef = coef[1:bLength]
-  bcov = covmat[1:bLength, 1:bLength]
-  #dim(bcov)
-
-  # extract beta part coef and it's coresponding covariance matrix
-  betacoef = coef[(1+bLength):length(coef)]
-  betacov = covmat[(1+bLength):length(coef), (1+bLength):length(coef)]
-
-  bSI <- solve(bcov)
-
-  betaSI <- solve(betacov)
-
-  # ---- shrinkage b part using RobMixReg::lars.lsa
-  bPart_lsa <- RobMixReg::lars.lsa(bSI, bcoef, bintercept, n, type)
-
-  bExtract = extract_larslsa(l.fit = bPart_lsa, beta.ols=bcoef, intercept=bintercept, n=n)
-
-  # ---- shrinkage beta part using RobMixReg::lars.lsa
-  betaPart_lsa <- RobMixReg::lars.lsa(betaSI, betacoef, betaintercept, n, type)
-
-  betaExtract = extract_larslsa(l.fit = betaPart_lsa, beta.ols=betacoef, intercept=betaintercept, n=n)
-
-  # prepare objects for output
-  theta.ols = as.matrix(c(bExtract$beta.ols, betaExtract$beta.ols))
-  theta.bic = as.matrix(c(bExtract$beta.bic, betaExtract$beta.bic))
-  theta.aic = as.matrix(c(bExtract$beta.aic, betaExtract$beta.aic))
-  best.bic = c(bExtract$bestBIC, betaExtract$bestBIC)
-  best.aic = c(bExtract$bestAIC, betaExtract$bestAIC)
-  rownames(theta.ols) = rownames(coef); colnames(theta.ols) = "theta.ols"
-  rownames(theta.bic) = rownames(coef); colnames(theta.bic) = "theta.bic"
-  rownames(theta.aic) = rownames(coef); colnames(theta.aic) = "theta.aic"
-  names(best.bic)=c("GammaBestBIC","BetaBestBIC")
-  names(best.aic)=c("GammaBestAIC","BetaBestAIC")
-  LSAkmcure_outlist = list(theta.ols=theta.ols, theta.bic=theta.bic, theta.aic=theta.aic,
-                           best.bic=best.bic, best.aic=best.aic)
-  return(LSAkmcure_outlist)
-}
-
-
-
-extract_larslsa = function(l.fit, beta.ols, intercept, n){
-  t1 <- sort(l.fit$BIC, ind=T)
-
-  t2 <- sort(l.fit$AIC, ind=T)
-
-  beta <- l.fit$beta
-
-  if(intercept) {
-
-    beta0 <- l.fit$beta0+beta.ols[1]
-
-    beta.bic <- c(beta0[t1$ix[1]],beta[t1$ix[1],])
-
-    beta.aic <- c(beta0[t2$ix[1]],beta[t2$ix[1],])
-
-  } else {
-
-    beta0 <- l.fit$beta0
-
-    beta.bic <- beta[t1$ix[1],]
-
-    beta.aic <- beta[t2$ix[1],]
-
-  }
-  bestBIC = l.fit$BIC[t1$ix[1]]
-  bestAIC = l.fit$AIC[t2$ix[1]]
-  obj <- list(beta.ols=beta.ols,
-              beta.bic=beta.bic, beta.aic = beta.aic,
-              bestBIC = bestBIC, bestAIC = bestAIC)
-  return(obj)
-}
-
