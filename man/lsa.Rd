@@ -2,7 +2,7 @@
 % Please edit documentation in R/lsa_function.R
 \name{lsa}
 \alias{lsa}
-\title{Ready to use function to apply the lars.lsa function to a fitted object of lm/glm/coxph.}
+\title{Ready to use function to apply the lars.lsa function to a fitted object of lm/glm/coxph/kmcure.}
 \usage{
 lsa(obj)
 }
@@ -13,7 +13,8 @@ lsa(obj)
 beta.ols: the MLE estimate ; beta.bic: the LSA-BIC estimate ; beta.aic: the LSA-AIC estimate.
 }
 \description{
-Ready to use function to apply the lars.lsa function to a fitted object of lm/glm/coxph/etc. This modified version is based on the version of Oct 19, 2006 of the lsa function in the RobMixReg package. Now it also reports lambda, BIC, and AIC.
+This modified version is based on the version of Oct 19, 2006 of the lsa function in the RobMixReg package. Now it also reports lambda, BIC, and AIC.
+Moreover, in this updated version for survival models, coxph/kmcure, the n in BIC is the number of events (Volinsky and Raftery, 2000).
 }
 \author{
 Reference Wang, H. and Leng, C. (2006) and Efron et al. (2004).

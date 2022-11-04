@@ -3,7 +3,7 @@
 #' LSA of the kmcure fit that need coef, covmat, n, and type
 #' @param coef The estimated coef of a kmcure fit.
 #' @param covmat The estimated covariance matrix of a kmcure fit
-#' @param n The number of observations (row number).
+#' @param n The number of events.
 #' @param type variable selection type, choose form "lasso" or "lar".
 #' @return object.
 #' @export

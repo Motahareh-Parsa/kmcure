@@ -1,6 +1,7 @@
 # This modified version is based on the lsa_function.R in the RobMixReg package
 # This modified lars.lsa function also exports the used lambda values, and
 # the lsa function also exports best.bic, best.aic, lambda.bic, lambda.aic values.
+# In survival models the n is substituted with number of events (in application of Coxph and kmcure).
 
 #require(lars)
 
@@ -32,9 +33,11 @@
 
 
 
-#' Ready to use function to apply the lars.lsa function to a fitted object of lm/glm/coxph.
+#' Ready to use function to apply the lars.lsa function to a fitted object of lm/glm/coxph/kmcure.
 #'
-#' Ready to use function to apply the lars.lsa function to a fitted object of lm/glm/coxph/etc. This modified version is based on the version of Oct 19, 2006 of the lsa function in the RobMixReg package. Now it also reports lambda, BIC, and AIC.
+#' This modified version is based on the version of Oct 19, 2006 of the lsa function in the RobMixReg package. Now it also reports lambda, BIC, and AIC.
+#' Moreover, in this updated version for survival models, coxph/kmcure, the n in BIC is the number of events (Volinsky and Raftery, 2000).
+#'
 #' @author Reference Wang, H. and Leng, C. (2006) and Efron et al. (2004).
 #' @param obj lm/glm/coxph or other object.
 #' @return beta.ols: the MLE estimate ; beta.bic: the LSA-BIC estimate ; beta.aic: the LSA-AIC estimate.
@@ -50,7 +53,7 @@ lsa <- function(obj)
       stop("There must be at least 50 bootstrap replications in the inputted kmcure object")
     }else{
       coef = obj$coef
-      n = length(obj$data$time)
+      n = sum(obj$data$event)
       covmat = cov(t(obj$boot$coef))
       output = suppressWarnings(LSAkmcure(coef, covmat, n, type="lasso"))
       return(output)
@@ -60,12 +63,13 @@ lsa <- function(obj)
 
   intercept <- attr(obj$terms,'intercept')
 
-  if(class(obj)[1]=='coxph') intercept <- 0
-
-
-
   n <- length(obj$residuals)
 
+  if(class(obj)[1]=='coxph')
+    {
+    intercept <- 0
+    n <- obj$nevent
+  }
 
 
   Sigma <- vcov(obj)

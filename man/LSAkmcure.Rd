@@ -11,7 +11,7 @@ LSAkmcure(coef, covmat, n, type)
 
 \item{covmat}{The estimated covariance matrix of a kmcure fit}
 
-\item{n}{The number of observations (row number).}
+\item{n}{The number of events.}
 
 \item{type}{variable selection type, choose form "lasso" or "lar".}
 }

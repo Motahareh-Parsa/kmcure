@@ -96,12 +96,12 @@ penalized <- function(time, event, survPreds, curePreds=NULL, R = 100, silent = 
 
     # do LSAkmcure for lasso type shrinkage
     timeS_lsa_lasso = Sys.time()
-    stdCoefPenLasso = LSAkmcure(stdCoef, stdCovMat, n, type = "lasso")
+    stdCoefPenLasso = LSAkmcure(stdCoef, stdCovMat, n=sum(event), type = "lasso")
     timeE_lsa_lasso = Sys.time()
 
     # do LSAkmcure for lar type shrinkage
     timeS_lsa_lar = Sys.time()
-    stdCoefPenLar = LSAkmcure(stdCoef, stdCovMat, n, type = "lar")
+    stdCoefPenLar = LSAkmcure(stdCoef, stdCovMat, n=sum(event), type = "lar")
     timeE_lsa_lar = Sys.time()
 
     # prepare outlist for the penalized function
